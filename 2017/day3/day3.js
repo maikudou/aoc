@@ -3,6 +3,7 @@ var width = 1;
 var height = 1;
 var value = 1;
 var direction = "R";
+var current = 0;
 
 var x = 0;
 var y = 0;

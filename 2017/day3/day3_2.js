@@ -6,7 +6,6 @@ var y = 0;
 var current = 1;
 var direction = "R";
 var values = {"00": 1};
-var index = 0;
 var possible;
 
 function addIfPossible(x,y) {
@@ -21,7 +20,6 @@ while (current < input) {
     switch(direction) {
         case "R":
             for(var i = 0; i < width && current < input; i++) {
-                index++;
                 x++;
                 current = addIfPossible(x-1, y);
                 current += addIfPossible(x, y+1);
@@ -34,7 +32,6 @@ while (current < input) {
             break;
         case "U":
             for(var i = 0; i < height && current < input; i++) {
-                index++;
                 y++;
                 current = addIfPossible(x, y-1);
                 current += addIfPossible(x-1, y+1);
@@ -47,7 +44,6 @@ while (current < input) {
             break;
         case "L":
             for(var i = 0; i < width-1 && current < input; i++) {
-                index++;
                 x--;
                 current = addIfPossible(x+1, y);
                 current += addIfPossible(x-1, y-1);
@@ -59,7 +55,6 @@ while (current < input) {
             break;
         case "D":
             for(var i = 0; i < height-1 && current < input; i++) {
-                index++;
                 y--;
                 current = addIfPossible(x, y+1);
                 current += addIfPossible(x+1, y-1);

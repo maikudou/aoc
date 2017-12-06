@@ -1,5 +1,5 @@
 var lineReader = require('readline').createInterface({
-    input: require('fs').createReadStream('input')
+    input: require('fs').createReadStream(__dirname + '/input')
 });
 
 var instructions = [];

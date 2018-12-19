@@ -74,7 +74,7 @@ for (i = 0; i < 16; i++) {
     for (k = 0; k < 16; k++) {
         xored = xored ^ nodes[16*i+k];
     }
-    if (xored > 9) {
+    if (xored > 15) {
         sparse.push(xored.toString(16));
     } else {
         sparse.push("0" + xored.toString(16));

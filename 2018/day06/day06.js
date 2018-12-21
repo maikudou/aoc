@@ -1,5 +1,5 @@
 var lineReader = require('readline').createInterface({
-    input: require('fs').createReadStream(__dirname + '/test')
+    input: require('fs').createReadStream(__dirname + '/input')
 });
 
 var minX = Infinity;
@@ -36,6 +36,8 @@ function queueNodeNeightbors(node, initialNode, queue) {
     var nextNodeDistance;
     var x = parseInt(node.x);
     var y = parseInt(node.y);
+    var initialNodeX = parseInt(initialNode.x);
+    var initialNodeY = parseInt(initialNode.y);
     var distance = node.distances.get(initialNodeIndex);
     var newDistance;
     var isGood;
@@ -48,11 +50,8 @@ function queueNodeNeightbors(node, initialNode, queue) {
             if (i < minX || i > maxX || j < minY || j > maxY) {
                 continue;
             }
-            if (i != x && j != y) {
-                newDistance = distance + 2;
-            } else {
-                newDistance = distance + 1;
-            }
+
+            newDistance = Math.abs(i - initialNodeX) + Math.abs(j - initialNodeY);
 
             nextNodeIndex = `${i},${j}`;
 
@@ -103,7 +102,7 @@ function queueNodeNeightbors(node, initialNode, queue) {
 
 function getClosestCount(node) {
     var initialNodeIndex = `${node.x},${node.y}`;
-    var closestCount = 0;
+    var closestCount = 1;
     const queue = [];
     var d = 'r';
     var w = 2;
@@ -115,10 +114,12 @@ function getClosestCount(node) {
     var nextNodeIndex;
     var nextNode;
     var c = 0
+    var changedCount = false;
 
-    while (isGood && c++ <100) {
+    while (isGood && c++ <300) {
         nextNodeIndex = `${x},${y}`;
-        console.log(nextNodeIndex);
+        // console.log(nextNodeIndex);
+
         if (grid.has(nextNodeIndex)) {
             nextNode = grid.get(nextNodeIndex);
 
@@ -138,66 +139,74 @@ function getClosestCount(node) {
             }
 
             if (selfDistanceIsMin) {
+                // console.log('adding', nextNodeIndex, selfDistance, nextNode.distances);
                 closestCount++;
                 changedCount = true;
+            } else {
+                // console.log('not adding', nextNodeIndex, selfDistance, nextNode.distances);
             }
+        }
 
-            switch (d) {
-                case 'r':
-                    if (xInc == w) {
-                        d = 'd';
-                    }
-                    break;
-                case 'd':
-                    if (yInc == w) {
-                        d = 'l';
-                    }
-                    break;
-                case 'l':
-                    if (xInc == 0) {
-                        d = 'u';
-                    }
-                    break;
-                case 'u':
-                    if (yInc == 0) {
-                        if (!changedCount) {
-                            isGood = false;
-                        }
-                        d = 'r';
-                        w += 2;
-                        x--;
-                        y--;
-                        changedCount = false;
-                    }
-                    break;
-            }
+        // console.log(d, w, xInc, yInc);
 
-            switch (d) {
-                case 'r':
-                    x++;
-                    xInc++;
-                    break;
-                case 'd':
-                    y++;
-                    yInc++;
-                    break;
-                case 'l':
-                    x--;
-                    xInc--;
-                    break;
-                case 'u':
-                    y--;
-                    yInc--;
-                    break;
-            }
+        switch (d) {
+            case 'r':
+                if (xInc == w) {
+                    d = 'd';
+                }
+                break;
+            case 'd':
+                if (yInc == w) {
+                    d = 'l';
+                }
+                break;
+            case 'l':
+                if (xInc == 0) {
+                    d = 'u';
+                }
+                break;
+            case 'u':
+                if (yInc == 1) {
+                    if (!changedCount) {
+                        isGood = false;
+                    }
+                    d = 'r';
+                    w += 2;
+                    x -= 2;
+                    y -= 2;
+                    xInc = -1;
+                    yInc = 0;
+                    changedCount = false;
+                }
+                break;
+        }
+
+
+        switch (d) {
+            case 'r':
+                x++;
+                xInc++;
+                break;
+            case 'd':
+                y++;
+                yInc++;
+                break;
+            case 'l':
+                x--;
+                xInc--;
+                break;
+            case 'u':
+                y--;
+                yInc--;
+                break;
         }
     }
     return closestCount;
 }
 
 lineReader.on('close', function () {
-    console.log(minX, minY, maxX, maxY, maxDistance);
-    console.log(grid);
+    // console.log(minX, minY, maxX, maxY, maxDistance);
+    // console.log(grid);
 
     const gridArray = Array.from(grid.keys());
     const initialGridArray = gridArray.slice();
@@ -232,11 +241,13 @@ lineReader.on('close', function () {
         var nextInitialNode = initialGridArray.shift();
         var [x,y] = nextInitialNode.split(",");
         if (x > minX && x < maxX && y > minY && y < maxY) {
-            console.log(nextInitialNode);
-            console.log(grid.get(nextInitialNode));
-            console.log(getClosestCount(grid.get(nextInitialNode)));
+            // console.log(nextInitialNode);
+            // console.log(grid.get(nextInitialNode));
+            // console.log(getClosestCount(grid.get(nextInitialNode)));
+            maxCount = Math.max(maxCount, getClosestCount(grid.get(nextInitialNode)));
         }
-
     }
+
+    console.log(maxCount);
 
 });

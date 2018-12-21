@@ -7,6 +7,7 @@ var minY = Infinity;
 var maxX = 0;
 var maxY = 0;
 var maxDistance;
+var maxDistanceSum = 10000;
 
 var grid = new Map();
 
@@ -128,114 +129,11 @@ function fillDistances(node) {
     }
 }
 
-function getClosestCount(node) {
-    var initialNodeIndex = `${node.x},${node.y}`;
-    var closestCount = 1;
-    var d = 'r';
-    var w = 2;
-    var xInc = 0;
-    var yInc = 0;
-    var x = node.x - 1;
-    var y = node.y - 1;
-    var isGood = true;
-    var nextNodeIndex;
-    var nextNode;
-    var changedCount = false;
-
-    while (isGood) {
-        nextNodeIndex = `${x},${y}`;
-        // console.log(nextNodeIndex);
-
-        if (grid.has(nextNodeIndex)) {
-            nextNode = grid.get(nextNodeIndex);
-
-            var selfDistance = nextNode.distances.get(initialNodeIndex);
-            var selfDistanceIsMin = true;
-
-            var nextDistancesArray = Array.from(nextNode.distances.keys());
-            while (nextDistancesArray.length) {
-                var nextDistanceIndex = nextDistancesArray.shift();
-                if (nextDistanceIndex == initialNodeIndex) {
-                    continue;
-                }
-                var nextDistance = nextNode.distances.get(nextDistanceIndex);
-                if (nextDistance <= selfDistance) {
-                    selfDistanceIsMin = false;
-                }
-            }
-
-            if (selfDistanceIsMin) {
-                // console.log('adding', nextNodeIndex, selfDistance, nextNode.distances);
-                closestCount++;
-                changedCount = true;
-            } else {
-                // console.log('not adding', nextNodeIndex, selfDistance, nextNode.distances);
-            }
-        }
-
-        // console.log(d, w, xInc, yInc);
-
-        switch (d) {
-            case 'r':
-                if (xInc == w) {
-                    d = 'd';
-                }
-                break;
-            case 'd':
-                if (yInc == w) {
-                    d = 'l';
-                }
-                break;
-            case 'l':
-                if (xInc == 0) {
-                    d = 'u';
-                }
-                break;
-            case 'u':
-                if (yInc == 1) {
-                    if (!changedCount) {
-                        isGood = false;
-                    }
-                    d = 'r';
-                    w += 2;
-                    x -= 2;
-                    y -= 2;
-                    xInc = -1;
-                    yInc = 0;
-                    changedCount = false;
-                }
-                break;
-        }
-
-
-        switch (d) {
-            case 'r':
-                x++;
-                xInc++;
-                break;
-            case 'd':
-                y++;
-                yInc++;
-                break;
-            case 'l':
-                x--;
-                xInc--;
-                break;
-            case 'u':
-                y--;
-                yInc--;
-                break;
-        }
-    }
-    return closestCount;
-}
-
 lineReader.on('close', function () {
     // console.log(minX, minY, maxX, maxY, maxDistance);
     // console.log(grid);
 
     const gridArray = Array.from(grid.keys());
-    const initialGridArray = gridArray.slice();
     var next = gridArray.shift();
     var node = grid.get(next);
 
@@ -247,21 +145,25 @@ lineReader.on('close', function () {
         next = gridArray.shift();
     }
 
+    const initialGridArray = Array.from(grid.keys());
     // console.log(grid);
 
-    var maxCount = 0;
+    var regionCount = 0;
+    var sum;
 
     while(initialGridArray.length) {
         var nextInitialNode = initialGridArray.shift();
         var [x,y] = nextInitialNode.split(",");
         if (x > minX && x < maxX && y > minY && y < maxY) {
-            // console.log(nextInitialNode);
-            // console.log(grid.get(nextInitialNode));
-            // console.log(getClosestCount(grid.get(nextInitialNode)));
-            maxCount = Math.max(maxCount, getClosestCount(grid.get(nextInitialNode)));
+            var sum = Array.from(grid.get(nextInitialNode).distances.values()).reduce(function(acc, next) {
+                return acc += next;
+            }, 0);
+            if (sum < maxDistanceSum) {
+                regionCount++;
+            }
         }
     }
 
-    console.log(maxCount);
+    console.log(regionCount);
 
 });

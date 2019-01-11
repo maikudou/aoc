@@ -1,5 +1,5 @@
 var lineReader = require('readline').createInterface({
-    input: require('fs').createReadStream(__dirname + '/test')
+    input: require('fs').createReadStream(__dirname + '/input')
 });
 
 var initialState;
@@ -33,10 +33,72 @@ function sum() {
     return sum;
 };
 
-var sums = new Set();
+function brent(array) {
+    var power, lam;
+    power = lam = 1;
+    var tortoise = 0;
+    var hare = 1;
+    while (array[tortoise] != array[hare]) {
+        if (power == lam) {
+            tortoise = hare;
+            power *= 2;
+            lam = 0;
+        }
+        hare++;
+        lam++;
+        if (hare > array.length-1) {
+            console.log("No cycle");
+            return;
+        }
+    }
+
+    var mu = 0;
+    tortoise = hare = 0;
+    for (var i = 0; i < lam; i++) {
+        hare++;
+    }
+
+    while (array[tortoise] != array[hare]) {
+        tortoise++;
+        hare++;
+        mu++;
+    }
+
+    console.log(mu, lam);
+}
+
+function floyd(array) {
+    var tortoise = 0;
+    var hare = 1;
+    while (array[tortoise] != array[hare]) {
+        tortoise++;
+        hare = tortoise*2;
+        if (hare > array.length-1) {
+            console.log("No cycle");
+            return;
+        }
+    }
+
+    var mu = 0
+    var tortoise = 0;
+
+    while (array[tortoise] != array[hare]) {
+        tortoise++;
+        hare++;
+        mu++;
+    }
+
+    var lam = 1
+    hare = tortoise+1;
+    while (array[tortoise] != array[hare]) {
+        hare++;
+        lam++;
+    }
+
+    console.log(mu, lam, array[tortoise], array[tortoise+1], array[tortoise+2]);
+}
+
 var sumsArray = [];
-var nextSum;
-var hasCandidate = false;
 
 lineReader.on('close', function () {
     for (var i = 0; i < initialState.length; i++) {
@@ -44,7 +106,7 @@ lineReader.on('close', function () {
     }
 
     var start = Date.now();
-    for (i = 0; i < 200; i++) {
+    for (i = 0; i < 20; i++) {
         newPots = pots.slice(0).map(()=> {return 0});
         unshift = 0;
 
@@ -80,34 +142,20 @@ lineReader.on('close', function () {
                 }
             }
         }
-
-        var runningSum = sum();
-
-        if (sums.has(runningSum)) {
-            console.log("Possible", i);
-            if (hasCandidate) {
-                if (nextSum == runningSum) {
-                    console.log("Found Cycle", i-1);
-                    break;
-                } else {
-                    nextSum = null;
-                    hasCandidate = false;
-                }
-            } else {
-                nextSum = sumsArray[sumsArray.indexOf(runningSum)+1];
-                hasCandidate = true;
-            }
-        } else if (hasCandidate) {
-            hasCandidate = false;
-        }
-
-        sums.add(runningSum);
-        sumsArray.push(runningSum);
+        // var leftPots = "0" + newPots.slice(0, centerIndex-1).join("");
+        // var rightPots = newPots.slice(centerIndex).reverse().join("");
+        // console.log(parseInt(leftPots, 2), leftPots);
+        // console.log(parseInt(rightPots, 2), rightPots);
+        // sumsArray.push(parseInt(leftPots, 2) + parseInt(rightPots, 2));
 
         pots = newPots;
     }
 
     console.log(sum());
     console.log(`Done in ${Date.now() - start}ms`);
-    console.log(sumsArray);
+
+    // brent(sumsArray);
+    // floyd(sumsArray);
+
+    // console.log(sumsArray.slice(0,20));
 });

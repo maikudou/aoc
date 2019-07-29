@@ -13,30 +13,30 @@ var tape = {
     goldfish: 5,
     trees: 3,
     cars: 2,
-    perfumes: 1,
-}
+    perfumes: 1
+};
 
-lineReader.on('line', function (line) {
-    var found=regexp.exec(line);
+lineReader.on('line', function(line) {
+    var found = regexp.exec(line);
     var truenes = true;
 
-    for(var i=2; i<= 6; i+=2){
-        if(found[i] == 'cats' || found[i] == 'trees'){
-            truenes = tape[found[i]] < Number(found[i+1]);
-        }else if(found[i] == 'pomeranians' || found[i] == 'goldfish'){
-            truenes = tape[found[i]] > Number(found[i+1]);
-        }else{
-            truenes = tape[found[i]] == Number(found[i+1]);
+    for (var i = 2; i <= 6; i += 2) {
+        if (found[i] === 'cats' || found[i] === 'trees') {
+            truenes = tape[found[i]] < Number(found[i + 1]);
+        } else if (found[i] === 'pomeranians' || found[i] === 'goldfish') {
+            truenes = tape[found[i]] > Number(found[i + 1]);
+        } else {
+            truenes = tape[found[i]] === Number(found[i + 1]);
         }
-        if(!truenes){
-            return
+        if (!truenes) {
+            return;
         }
     }
-    if(truenes){
+    if (truenes) {
         console.log(found[1]);
     }
 });
 
-lineReader.on('close', function () {
-
+lineReader.on('close', function() {
+    return false;
 });

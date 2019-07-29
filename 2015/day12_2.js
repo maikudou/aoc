@@ -1,20 +1,19 @@
-var fs = require('fs');
+const fs = require('fs');
 
-file = fs.readFileSync('./day12.input');
+const file = fs.readFileSync('./day12.input');
+const data = JSON.parse(file.toString());
 
-data = JSON.parse(file.toString());
+var sum = 0;
 
-sum = 0;
-
-function parseAndSum(item){
-    if(typeof item == 'object'){
+function parseAndSum(item) {
+    if (typeof item === 'object') {
         var keys = Object.keys(item);
         var redFound = false;
 
-        if(typeof item.length == 'undefined'){
-            for(var i=0; i<keys.length; i++){
-                if(typeof item[keys[i]] == 'string'){
-                    if(item[keys[i]]=='red'){
+        if (typeof item.length === 'undefined') {
+            for (var i = 0; i < keys.length; i++) {
+                if (typeof item[keys[i]] === 'string') {
+                    if (item[keys[i]] === 'red') {
                         redFound = true;
                         break;
                     }
@@ -22,11 +21,11 @@ function parseAndSum(item){
             }
         }
 
-        if(!redFound){
-            for(var i=0; i<keys.length; i++){
-                if(typeof item[keys[i]] == 'number'){
+        if (!redFound) {
+            for (var i = 0; i < keys.length; i++) {
+                if (typeof item[keys[i]] === 'number') {
                     sum += item[keys[i]];
-                }else{
+                } else {
                     parseAndSum(item[keys[i]]);
                 }
             }

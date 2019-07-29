@@ -79,13 +79,11 @@ function floyd(array) {
         }
     }
 
-    var mu = 0
-    var tortoise = 0;
+    var tortoise = 0; // now it's mu, too
 
     while (array[tortoise] != array[hare]) {
         tortoise++;
         hare++;
-        mu++;
     }
 
     var lam = 1
@@ -95,7 +93,7 @@ function floyd(array) {
         lam++;
     }
 
-    console.log(mu, lam, array[tortoise], array[tortoise+1], array[tortoise+2]);
+    console.log(tortoise, lam, array[tortoise], array[tortoise+1], array[tortoise+2]);
 }
 
 var sumsArray = [];

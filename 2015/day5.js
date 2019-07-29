@@ -4,19 +4,19 @@ var lineReader = require('readline').createInterface({
 
 var count = 0;
 
-lineReader.on('line', function (line) {
-    if(/xy|ab|cd|pq/gi.test(line)){
-        return
+lineReader.on('line', function(line) {
+    if (/xy|ab|cd|pq/gi.test(line)) {
+        return;
     }
-    if(/([aeiou].*[aeiou].*[aeiou])/gi.test(line)){
-        if(/(.)\1{1,}/gi.test(line)){
+    if (/([aeiou].*[aeiou].*[aeiou])/gi.test(line)) {
+        if (/(.)\1{1,}/gi.test(line)) {
             count++;
         }
-        return
+
     }
 
 });
 
-lineReader.on('close', function () {
+lineReader.on('close', function() {
     console.log(count);
 });

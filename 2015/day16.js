@@ -13,16 +13,16 @@ var tape = {
     goldfish: 5,
     trees: 3,
     cars: 2,
-    perfumes: 1,
-}
+    perfumes: 1
+};
 
-lineReader.on('line', function (line) {
-    var found=regexp.exec(line);
-    if(tape[found[2]]==Number(found[3]) && tape[found[4]]==Number(found[5]) && tape[found[6]]==Number(found[7])){
+lineReader.on('line', function(line) {
+    var found = regexp.exec(line);
+    if (tape[found[2]] === Number(found[3]) && tape[found[4]] === Number(found[5]) && tape[found[6]] === Number(found[7])) {
         console.log(found[1]);
     }
 });
 
-lineReader.on('close', function () {
-
+lineReader.on('close', function() {
+    return false;
 });

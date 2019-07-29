@@ -5,11 +5,11 @@ class Heap {
 
     insert(value) {
         this._arr.push(value);
-        this._bubbleUp(this._arr.length-1);
+        this._bubbleUp(this._arr.length - 1);
     }
 
     pop() {
-        this._swap(0, this._arr.length-1);
+        this._swap(0, this._arr.length - 1);
         var returnedValue = this._arr.pop();
         this._bubbleDown(0);
         return returnedValue;
@@ -47,7 +47,7 @@ class Heap {
             maxChildIndex = leftChildIndex;
         }
 
-        if (typeof this._arr[maxChildIndex] == 'undefined') {
+        if (typeof this._arr[maxChildIndex] === 'undefined') {
             return;
         }
 
@@ -57,8 +57,8 @@ class Heap {
         }
     }
 
-    _compare(a, b) {
-        throw new Error("_compare method unimplemented");
+    _compare() {
+        throw new Error('_compare method unimplemented');
     }
 
     _swap(indexA, indexB) {
@@ -68,13 +68,13 @@ class Heap {
     }
 
     _getParentIndex(index) {
-        return Math.floor((index-1)/2);
+        return Math.floor((index - 1) / 2);
     }
     _getLeftChildIndex(index) {
-        return index * 2 + 1
+        return index * 2 + 1;
     }
     _getRightChildIndex(index) {
-        return index * 2 + 2
+        return index * 2 + 2;
     }
 }
 
@@ -94,4 +94,4 @@ module.exports = {
     Heap,
     MaxHeap,
     MinHeap
-}
+};

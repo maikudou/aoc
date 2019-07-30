@@ -80,6 +80,10 @@ function explore(step) {
         });
     }
 
+    if (--step.hitPoints <= 0) {
+        return;
+    }
+
     for (var i = 0; i < availableSpells.length; i++) {
         nextSpell = availableSpells[i];
 

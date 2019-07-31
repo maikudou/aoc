@@ -46,7 +46,7 @@ const sum = packages.reduce(function(acc, value) {
     return acc += value;
 }, 0);
 
-const groupWeight = sum / 3;
+const groupWeight = sum / 4;
 console.log(groupWeight);
 
 var variants = new Map();

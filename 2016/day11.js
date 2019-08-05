@@ -1,21 +1,22 @@
+const test = true;
 var lineReader = require('readline').createInterface({
-    input: require('fs').createReadStream(__dirname + '/day11.test-input')
+    input: require('fs').createReadStream(__dirname + `/day11.${test ? 'test-' : ''}input`)
 });
 
 var debug = false;
 
 function createHash(floor, generators, chips) {
-    var hash = [floor];
+    const hashArray = [floor];
 
-    hash.push(generators.reduce(function(acc, floorGens) {
-        acc.push(Array.from(floorGens).sort().reduce(function(acc2, generator) {
+    hashArray.push(generators.reduce(function(acc, floorGenerators) {
+        acc.push(Array.from(floorGenerators).sort().reduce(function(acc2, generator) {
             acc2.push(generator);
             return acc2;
         }, []).join(','));
         return acc;
     }, []).join('-'));
 
-    hash.push(chips.reduce(function(acc, floorChips) {
+    hashArray.push(chips.reduce(function(acc, floorChips) {
         acc.push(Array.from(floorChips).sort().reduce(function(acc2, chip) {
             acc2.push(chip);
             return acc2;
@@ -23,7 +24,7 @@ function createHash(floor, generators, chips) {
         return acc;
     }, []).join('-'));
 
-    return hash.join('|');
+    return hashArray.join('|');
 }
 
 const gens = [new Set(), new Set(), new Set(), new Set()];
@@ -38,9 +39,14 @@ function getPossibleMoves(hash) { // eslint-disable-line
     const generators = node.gens;
     const chips = node.chips;
     const distance = node.distance;
-    var moves = [];
-    var floorGens = Array.from(generators[floor]);
-    var floorChips = Array.from(chips[floor]);
+    var moves = new Set();
+    var floorGens = generators[floor];
+    var floorChips = chips[floor];
+    var floorGensArray = Array.from(generators[floor]);
+    var floorChipsArray = Array.from(floorChips);
+    var newHash;
+
+    // debug && console.log('gpm', generators, floorGensArray, floorChipsArray);
 
     const floorsVariants = [];
     if (floor > 0) {
@@ -53,161 +59,170 @@ function getPossibleMoves(hash) { // eslint-disable-line
     for (var f = 0; f < floorsVariants.length; f++) {
         var nextFloor = floorsVariants[f];
 
-        for (var i = 0; i < floorGens.length; i++) {
+        // gens
+        for (var i = 0; i < floorGensArray.length; i++) {
+
             // chip-gen group
-            if (chips[floor].has(floorGens[i])
-                && (chips[nextFloor].size === 0 || chips[nextFloor].size <= generators[nextFloor].size)
+            if (floorChips.has(floorGensArray[i])
+                && chips[nextFloor].size <= generators[nextFloor].size
             ) {
                 var gensClone = cloneFloorData(generators);
                 var chipsClone = cloneFloorData(chips);
 
-                gensClone[floor].delete(floorGens[i]);
-                chipsClone[floor].delete(floorGens[i]);
+                gensClone[floor].delete(floorGensArray[i]);
+                chipsClone[floor].delete(floorGensArray[i]);
 
-                gensClone[nextFloor].add(floorGens[i]);
-                chipsClone[nextFloor].add(floorGens[i]);
+                gensClone[nextFloor].add(floorGensArray[i]);
+                chipsClone[nextFloor].add(floorGensArray[i]);
 
-                var hash = createHash(nextFloor, gensClone, chipsClone);
+                newHash = createHash(nextFloor, gensClone, chipsClone);
 
-                if (!graph.has(hash)) {
-                    graph.set(hash, {
+                if (!graph.has(newHash)) {
+                    graph.set(newHash, {
                         gens: gensClone,
                         chips: chipsClone,
                         floor: nextFloor,
                         visited: false,
-                        distance: distance + 1
+                        distance: distance + 1,
+                        from: hash
                     });
+                    moves.add(newHash);
                 }
 
-                moves.push(hash);
             }
 
             // Single gen
             // Next floor has same chip
-            // or Current floor has same chip and current floor does not have any gens
-            // or next floor does not have any chips
             // or next floor is balanced or has more gens than chips
-            if ((chips[nextFloor].has(floorGens[i])
-                || chips[nextFloor].size === 0
-                || chips[nextFloor].size <= generators[nextFloor].size)
-                    && chips[floor].has(floorGens[i]) && generators[floor].size === 1
+            // and Current floor has not the same chip or current floor does not have any other chips
+            if (
+                (!floorChips.has(floorGensArray[i]) || floorGens.size === 1)
+                && (chips[nextFloor].size === 1 && chips[nextFloor].has(floorGensArray[i])
+                    || chips[nextFloor].size <= generators[nextFloor].size
+                )
             ) {
                 var gensClone = cloneFloorData(generators);
                 var chipsClone = cloneFloorData(chips);
 
-                gensClone[floor].delete(floorGens[i]);
-                gensClone[nextFloor].add(floorGens[i]);
+                gensClone[floor].delete(floorGensArray[i]);
+                gensClone[nextFloor].add(floorGensArray[i]);
 
-                var hash = createHash(nextFloor, gensClone, chipsClone);
+                newHash = createHash(nextFloor, gensClone, chipsClone);
 
-                if (!graph.has(hash)) {
-                    graph.set(hash, {
+                if (!graph.has(newHash)) {
+                    graph.set(newHash, {
                         gens: gensClone,
                         chips: chipsClone,
                         floor: nextFloor,
                         visited: false,
-                        distance: distance + 1
+                        distance: distance + 1,
+                        from: hash
                     });
+                    moves.add(newHash);
                 }
 
-                moves.push(hash);
             }
 
             // double gen
-            for (var j = 0; j < floorGens.length; j++) {
+            for (var j = 0; j < floorGensArray.length; j++) {
                 if (j !== i) {
-                    if ((chips[nextFloor].has(floorGens[i]) && chips[nextFloor].has(floorGens[j])
-                        || chips[nextFloor].size === 0
-                        || chips[nextFloor].size <= generators[nextFloor].size)
-                            && (chips[floor].length === 0 || generators[floor].size === 2)
+                    if (
+                        (chips[nextFloor].has(floorGensArray[i]) && chips[nextFloor].has(floorGensArray[j]) && chips[nextFloor].size === 2
+                            || chips[nextFloor].size <= generators[nextFloor].size)
+                        && (floorChips.length === 0 || generators[floor].size === 2)
                     ) {
                         var gensClone = cloneFloorData(generators);
                         var chipsClone = cloneFloorData(chips);
 
-                        gensClone[floor].delete(floorGens[i]);
-                        gensClone[floor].delete(floorGens[j]);
-                        gensClone[nextFloor].add(floorGens[i]);
-                        gensClone[nextFloor].add(floorGens[j]);
+                        gensClone[floor].delete(floorGensArray[i]);
+                        gensClone[floor].delete(floorGensArray[j]);
+                        gensClone[nextFloor].add(floorGensArray[i]);
+                        gensClone[nextFloor].add(floorGensArray[j]);
 
-                        var hash = createHash(nextFloor, gensClone, chipsClone);
+                        newHash = createHash(nextFloor, gensClone, chipsClone);
 
-                        if (!graph.has(hash)) {
-                            graph.set(hash, {
+                        if (!graph.has(newHash)) {
+                            graph.set(newHash, {
                                 gens: gensClone,
                                 chips: chipsClone,
                                 floor: nextFloor,
                                 visited: false,
-                                distance: distance + 1
+                                distance: distance + 1,
+                                from: hash
                             });
+                            moves.add(newHash);
                         }
 
-                        moves.push(hash);
                     }
                 }
             }
         }
 
-        for (var k = 0; k < floorChips.length; k++) {
+
+        // chips
+        for (var k = 0; k < floorChipsArray.length; k++) {
             // Single chip
-            if (gens[nextFloor].has(floorChips[k])
-                || gens[nextFloor].size === 0
+            if (generators[nextFloor].has(floorChipsArray[k])
+                || generators[nextFloor].size === 0
             ) {
                 var gensClone = cloneFloorData(generators);
                 var chipsClone = cloneFloorData(chips);
 
-                chipsClone[floor].delete(floorChips[k]);
-                chipsClone[nextFloor].add(floorChips[k]);
+                chipsClone[floor].delete(floorChipsArray[k]);
+                chipsClone[nextFloor].add(floorChipsArray[k]);
 
-                var hash = createHash(nextFloor, gensClone, chipsClone);
+                newHash = createHash(nextFloor, gensClone, chipsClone);
 
-                if (!graph.has(hash)) {
-                    graph.set(hash, {
+                if (!graph.has(newHash)) {
+                    graph.set(newHash, {
                         gens: gensClone,
                         chips: chipsClone,
                         floor: nextFloor,
                         visited: false,
-                        distance: distance + 1
+                        distance: distance + 1,
+                        from: hash
                     });
+                    moves.add(newHash);
                 }
 
-                moves.push(hash);
             }
 
             // Double chips
-            for (var l = 0; l < floorChips.length; l++) {
+            for (var l = 0; l < floorChipsArray.length; l++) {
 
-                debug && console.log(nextFloor, gens[nextFloor], gens[nextFloor].size);
+                debug && console.log(nextFloor, generators[nextFloor], generators[nextFloor].size);
 
-                if (l !== k && gens[nextFloor].has(floorChips[k]) && gens[nextFloor].has(floorChips[l])
-                    || gens[nextFloor].size === 0
+                if (l !== k && generators[nextFloor].has(floorChipsArray[k]) && generators[nextFloor].has(floorChipsArray[l])
+                    || generators[nextFloor].size === 0
                 ) {
                     var gensClone = cloneFloorData(generators);
                     var chipsClone = cloneFloorData(chips);
 
-                    chipsClone[floor].delete(floorChips[k]);
-                    chipsClone[floor].delete(floorChips[l]);
-                    chipsClone[nextFloor].add(floorChips[k]);
-                    chipsClone[nextFloor].add(floorChips[l]);
+                    chipsClone[floor].delete(floorChipsArray[k]);
+                    chipsClone[floor].delete(floorChipsArray[l]);
+                    chipsClone[nextFloor].add(floorChipsArray[k]);
+                    chipsClone[nextFloor].add(floorChipsArray[l]);
 
-                    var hash = createHash(nextFloor, gensClone, chipsClone);
+                    newHash = createHash(nextFloor, gensClone, chipsClone);
 
-                    if (!graph.has(hash)) {
-                        graph.set(hash, {
+                    if (!graph.has(newHash)) {
+                        graph.set(newHash, {
                             gens: gensClone,
                             chips: chipsClone,
                             floor: nextFloor,
                             visited: false,
-                            distance: distance + 1
+                            distance: distance + 1,
+                            from: hash
                         });
+                        moves.add(newHash);
                     }
 
-                    moves.push(hash);
                 }
             }
         }
     }
 
-    return moves;
+    return Array.from(moves);
 }
 
 function cloneFloorData(data) {
@@ -227,6 +242,21 @@ function logState(state) {
 
 var typesLenght = 0;
 
+// function exploreToSolution(hash) {
+//     var currentNode = graph.get(hash);
+//     if (currentNode.gens[3].size === typesLenght && currentNode.chips[3].size === typesLenght) {
+//         return currentNode;
+//     }
+//     var nextMoves = getPossibleMoves(hash);
+//     for (var i = 0; i < nextMoves.length; i++) {
+//         var solution = exploreToSolution(nextMoves[i]);
+//         if (solution) {
+//             return solution;
+//         }
+//     }
+//     return null;
+// }
+
 lineReader.on('line', function(line) {
     var match;
     var regexp = /([^-\s]+)(?:-compatible)? (generator|microchip)/g;
@@ -243,11 +273,11 @@ lineReader.on('line', function(line) {
 
 lineReader.on('close', function() {
     currentFloor = 0;
-    console.log(gens);
-    console.log(chips);
-    console.log(typesLenght);
+    // console.log(gens);
+    // console.log(chips);
+    // console.log(typesLenght);
     var startHash = createHash(currentFloor, gens, chips);
-    console.log(startHash);
+    // console.log('startHash', startHash);
     graph.set(startHash, {
         gens: cloneFloorData(gens),
         chips: cloneFloorData(chips),
@@ -258,28 +288,59 @@ lineReader.on('close', function() {
 
     var done = false;
 
+    var timer = Date.now();
     var toExplore = [startHash];
+    var currentNode;
 
+    // BFS
     while (toExplore.length && !done) {
         var hash = toExplore.shift();
-        var currentNode = graph.get(hash);
+        // console.log(graph.size, toExplore.length, hash);
+        currentNode = graph.get(hash);
         // console.log(createHash(currentNode.floor, currentNode.gens, currentNode.chips));
         // logState(currentNode);
         if (!currentNode.visited) {
             currentNode.visited = true;
-            if (currentNode.gens[3].length === typesLenght && currentNode.chips[3].length === typesLenght) {
+            if (currentNode.gens[3].size === typesLenght && currentNode.chips[3].size === typesLenght) {
                 done = true;
-                console.log(currentNode.distance);
+                // process.exit(0);
             } else {
                 var nextMoves = getPossibleMoves(hash);
-                toExplore = toExplore.concat(nextMoves);
+                for (var i = 0; i < nextMoves.length; i++) {
+                    toExplore.push(nextMoves[i]);
+                }
             }
         }
     }
 
-    debug = true;
+    if (done) {
+        console.log(`${currentNode.distance} steps — ${Date.now() - timer}ms`);
+        if (test) {
+            var from = currentNode.from;
+            var solution = [];
 
-    console.log(getPossibleMoves('0|--hydrogen,lithium-|hydrogen,lithium---'));
+            while (from) {
+                solution.unshift(from);
+                from = graph.get(from).from;
+            }
+
+            solution.push(createHash(3, currentNode.gens, currentNode.chips));
+
+            for (var i = 0; i < solution.length; i++) {
+                console.log(solution[i]);
+                logState(graph.get(solution[i]));
+            }
+        }
+    } else {
+        console.log('Solution not found');
+    }
+
+    // // DFS
+    // console.log(`${exploreToSolution(startHash).distance} steps — ${Date.now() - timer}ms`);
+
+    // debug = true;
+
+    // console.log('moves', getPossibleMoves('2|---hydrogen,lithium|--hydrogen,lithium-'));
 
     // console.log(getPossibleMoves(currentFloor, gens, chips, 0));
 });

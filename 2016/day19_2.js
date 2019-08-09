@@ -1,111 +1,54 @@
 const input = 3001330; // 3001330;
 
-var elves = new Array(input);
-for (var i = 0; i < input; i++) {
-    elves[i] = { i: i + 1, p: 1 };
+const root = {
+    i: 1,
+    p: 1
+};
+
+var nextRoot = root;
+
+for (var i = 1; i < input; i++) {
+    var next = {
+        i: i + 1,
+        p: 1,
+        prev: nextRoot
+    };
+    nextRoot.next = next;
+    nextRoot = next;
 }
 
-// i = 0;
-// var nextI;
-// var nextIBack;
+root.prev = nextRoot;
+nextRoot.next = root;
 
-// while (true) { // eslint-disable-line
-//     // console.log(elves);
-//     while (elves[i] === 0) {
-//         i++;
-//         if (i === input) {
-//             i = 0;
-//         }
-//     }
+nextRoot = root;
 
-//     nextI = i + 1;
-//     if (nextI >= input - 1) {
-//         nextI = 0;
-//     }
+var currentSize = input;
 
-//     nextIBack = i - 1;
-//     if (nextIBack < 0) {
-//         nextIBack = input - 1;
-//     }
+while (nextRoot && currentSize > 1) {
+    if (currentSize % 1000 === 0) {
+        console.log(currentSize);
+    }
+    // console.log('root', nextRoot.i);
 
-//     var restrainer = 0;
-
-//     while (nextI !== nextIBack) {
-//         if (restrainer++ > input) {
-//             console.log(nextI, nextIBack);
-//             process.exit();
-//         }
-//         while (elves[nextI] === 0) {
-//             nextI++;
-//             if (nextI === input) {
-//                 nextI = 0;
-//             }
-//         }
-
-//         while (elves[nextIBack] === 0) {
-//             nextIBack--;
-//             if (nextIBack === -1) {
-//                 nextIBack = input - 1;
-//             }
-//         }
-
-//         if (nextI === nextIBack) {
-//             break;
-//         }
-
-//         nextI++;
-//         if (nextI >= input - 1) {
-//             nextI = 0;
-//         }
-
-//         if (nextI === nextIBack) {
-//             nextI--;
-//             if (nextI < 0) {
-//                 nextI = input - 1;
-//             }
-//             break;
-//         }
-
-//         nextIBack--;
-//         if (nextIBack < 0) {
-//             nextIBack = input - 1;
-//         }
-//     }
-
-//     // console.log('nextI', nextI);
-
-//     if (i === nextI) {
-//         break;
-//     }
-//     elves[i] += elves[nextI];
-
-//     if (elves[i] === input) {
-//         break;
-//     }
-
-//     elves[nextI] = 0;
-
-//     i++;
-//     if (i >= input) {
-//         i = 0;
-//     }
-// }
-i = 0;
-while (elves.length > 1) {
-    var nextI = i + Math.floor(elves.length / 2);
-
-    if (nextI >= elves.length) {
-        nextI = nextI - elves.length;
+    if (nextRoot.next === nextRoot) {
+        break;
     }
 
-    // console.log(elves[nextI].i, i);
-    elves[i].p += elves[nextI].p;
-    elves.splice(nextI, 1);
-    i++;
-    if (i >= elves.length) {
-        i = 0;
+    var nextVictim = nextRoot;
+
+    for (i = currentSize % 2 ? 1 : 0; i < currentSize / 2; i++) {
+        nextVictim = nextVictim.next;
     }
 
+    // console.log('victim', nextVictim.i);
+
+    nextRoot.p += nextVictim.p;
+
+    nextVictim.prev.next = nextVictim.next;
+    nextVictim.next.prev = nextVictim.prev;
+    currentSize--;
+
+    nextRoot = nextRoot.next;
 }
 
-console.log(elves[0].i);
+console.log(nextRoot.i);

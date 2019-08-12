@@ -1,19 +1,17 @@
 var lineReader = require('readline').createInterface({
-    input: require('fs').createReadStream(`${__dirname}/day20.test-input`)
+    input: require('fs').createReadStream(`${__dirname}/day20.input`)
 });
 
 var rangesStarts = [];
 var rangesEnds = new Map();
 
 var min = Infinity;
-var max = -Infinity;
 
 lineReader.on('line', function(line) {
     line = line.split('-');
     rangesStarts.push(parseInt(line[0], 10));
     rangesEnds.set(parseInt(line[1], 10), parseInt(line[0], 10));
     min = Math.min(min, line[0]);
-    max = Math.max(max, line[1]);
 });
 
 const currentRanges = new Set();
@@ -33,41 +31,34 @@ lineReader.on('close', function() {
         return a[0] > b[0] ? 1 : -1;
     });
 
-    var count = 0;
     var count = min;
-    var i = min;
-    var prevI = min;
+    var prevI = -1;
 
-    i = rangesStarts.shift();
+    // console.log(rangesStarts, rangesEndsArray, rangesEnds);
 
-    console.log(rangesStarts, rangesEndsArray, rangesEnds);
-
-    while (i <= 4294967295) {
-        console.log('i', i);
-        if (currentRanges.size === 0) {
-            count += i - prevI;
-        }
-
-        prevI = i;
-
-        if (!rangesStarts.length && !rangesEndsArray.length) {
-            count += 4294967295 - i;
-            break;
-        }
-
-        if (rangesStarts.length && rangesEndsArray.length && rangesStarts[0] < rangesEndsArray[0][0]) {
-            i = rangesStarts.shift();
-            currentRanges.add(i);
-        } else if (rangesStarts.length && rangesEndsArray.length && rangesStarts[0] >= rangesEndsArray[0][0]) {
-            currentRanges.delete(rangesEnds.get(rangesEndsArray[0][0]));
-            i = rangesEndsArray.shift()[0];
-        } else if (!rangesStarts.length && rangesEndsArray.length) {
-            currentRanges.delete(rangesEnds.get(rangesEndsArray[0][0]));
-            i = rangesEndsArray.shift()[0];
-        } else if (rangesStarts.length && !rangesEndsArray.length) {
-            i = rangesStarts.shift();
-            currentRanges.add(i);
+    while (rangesStarts.length || rangesEndsArray.length) {
+        if (rangesStarts.length && rangesEndsArray.length) {
+            if (rangesStarts[0] < rangesEndsArray[0][0]) {
+                if (currentRanges.size === 0) {
+                    count += rangesStarts[0] - prevI - 1;
+                }
+                currentRanges.add(rangesStarts.shift());
+            } else {
+                prevI = rangesEndsArray[0][0];
+                currentRanges.delete(rangesEndsArray.shift()[1]);
+            }
+        } else if (rangesStarts.length) {
+            if (currentRanges.size === 0) {
+                count += rangesStarts[0] - prevI - 1;
+            }
+            currentRanges.add(rangesStarts.shift());
+        } else if (rangesEndsArray.length) {
+            prevI = rangesEndsArray[0][0];
+            currentRanges.delete(rangesEndsArray.shift()[1]);
         }
     }
+
+    count += 4294967295 - prevI;
+
     console.log(count);
 });

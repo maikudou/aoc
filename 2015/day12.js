@@ -1,18 +1,16 @@
-var fs = require('fs');
+const fs = require('fs');
 
-file = fs.readFileSync('./day12.input');
+const file = fs.readFileSync('./day12.input');
+const data = JSON.parse(file.toString());
+var sum = 0;
 
-data = JSON.parse(file.toString());
-
-sum = 0;
-
-function parseAndSum(item){
-    if(typeof item == 'object'){
+function parseAndSum(item) {
+    if (typeof item === 'object') {
         var keys = Object.keys(item);
-        for(var i=0; i<keys.length; i++){
-            if(typeof item[keys[i]] == 'number'){
+        for (var i = 0; i < keys.length; i++) {
+            if (typeof item[keys[i]] === 'number') {
                 sum += item[keys[i]];
-            }else{
+            } else {
                 parseAndSum(item[keys[i]]);
             }
         }

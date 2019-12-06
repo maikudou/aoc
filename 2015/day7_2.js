@@ -2,76 +2,76 @@ var lineReader = require('readline').createInterface({
     input: require('fs').createReadStream('day7.input')
 });
 
-var circuit = {}
+var circuit = {};
 
-lineReader.on('line', function (line) {
+lineReader.on('line', function(line) {
     var instr = line.split(' -> ');
     var wireName = instr[1];
-    var found = null
-    var foundNot = null
-    var foundOther = null
+    var foundNot = null;
+    var foundOther = null;
 
-    if(found = /OR|AND|RSHIFT|LSHIFT|NOT/gi.exec(instr[0])){
-        if(foundNot = /NOT (\S+)/gi.exec(instr[0])){
-            circuit[wireName] = function(){
-                return ~ getWire(foundNot[1], 'NOT')
-            }
+    if (/OR|AND|RSHIFT|LSHIFT|NOT/gi.exec(instr[0])) {
+        if (foundNot = /NOT (\S+)/gi.exec(instr[0])) { // eslint-disable-line no-cond-assign
+            circuit[wireName] = function() {
+                return ~getWire(foundNot[1], 'NOT'); // eslint-disable-line no-bitwise
+            };
         }
-        if(foundOther = /(\S+) (OR|AND|RSHIFT|LSHIFT) (\S+)/gi.exec(instr[0])){
-            circuit[wireName] = function(){
-                return getResult(foundOther[1], foundOther[3], foundOther[2])
-            }
+        if (foundOther = /(\S+) (OR|AND|RSHIFT|LSHIFT) (\S+)/gi.exec(instr[0])) { // eslint-disable-line no-cond-assign
+            circuit[wireName] = function() {
+                return getResult(foundOther[1], foundOther[3], foundOther[2]);
+            };
         }
-    }else{
-        if(isNaN(parseInt(instr[0]))){
-            circuit[wireName] = function(){
-                return getWire(instr[0], 'Direct');
-            }
-        }else{
-            circuit[wireName] = parseInt(instr[0])
-        }
+    } else if (isNaN(parseInt(instr[0], 10))) {
+        circuit[wireName] = function() {
+            return getWire(instr[0], 'Direct');
+        };
+    } else {
+        circuit[wireName] = parseInt(instr[0], 10);
     }
 });
 
-getResult = function(left, right, operand){
-    if(isNaN(parseInt(left))){
-        left = getWire(left, operand)
-    }else{
-        left = parseInt(left)
+function getResult(left, right, operand) {
+    var left, right;
+
+    if (isNaN(parseInt(left, 10))) {
+        left = getWire(left, operand);
+    } else {
+        left = parseInt(left, 10);
     }
-    if(isNaN(parseInt(right))){
-        right = getWire(right, operand)
-    }else{
-        right = parseInt(right)
+    if (isNaN(parseInt(right, 10))) {
+        right = getWire(right, operand);
+    } else {
+        right = parseInt(right, 10);
     }
 
-    switch(operand){
+    var result;
+
+    switch (operand) {
         case 'OR':
-            return left | right
+            result = left | right; // eslint-disable-line no-bitwise
             break;
         case 'AND':
-            return left & right
+            result = left & right; // eslint-disable-line no-bitwise
             break;
         case 'LSHIFT':
-            return left << right
+            result = left << right; // eslint-disable-line no-bitwise
             break;
         case 'RSHIFT':
-            return left >> right
+            result = left >> right; // eslint-disable-line no-bitwise
             break;
     }
+    return result;
 }
 
-getWire = function(wireName, source){
-    if(typeof circuit[wireName] == 'function'){
+function getWire(wireName) {
+    if (typeof circuit[wireName] === 'function') {
         return circuit[wireName] = circuit[wireName]();
-    }else{
+    } else {
         return circuit[wireName];
     }
 }
 
-var pathToInput=[];
-
-lineReader.on('close', function () {
-    circuit['b']=3176;
+lineReader.on('close', function() {
+    circuit.b = 3176;
     console.log(getWire('a'));
 });

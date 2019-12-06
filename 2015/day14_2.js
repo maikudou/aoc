@@ -8,8 +8,8 @@ var contenders = [];
 var leadingDistance = 0;
 var winningPoints = 0;
 
-lineReader.on('line', function (line) {
-    parse = regexp.exec(line);
+lineReader.on('line', function(line) {
+    var parse = regexp.exec(line);
     contenders.push({
         name: parse[1],
         speed: Number(parse[2]),
@@ -23,37 +23,37 @@ lineReader.on('line', function (line) {
     });
 });
 
-lineReader.on('close', function () {
-    for(var time=0; time < 2503; time++){
-        for(var i=0; i<contenders.length; i++){
+lineReader.on('close', function() {
+    for (var time = 0; time < 2503; time++) {
+        for (var i = 0; i < contenders.length; i++) {
             var contender = contenders[i];
-            if(contender.state == 'running'){
+            if (contender.state === 'running') {
                 contender.distance += contender.speed;
                 contender.flyingTime++;
-                if(contender.flyingTime == contender.fly){
+                if (contender.flyingTime === contender.fly) {
                     contender.restingTime = 0;
                     contender.flyingTime = 0;
-                    contender.state = 'resting'
+                    contender.state = 'resting';
                 }
-            }else{
+            } else {
                 contender.restingTime++;
-                if(contender.restingTime == contender.rest){
+                if (contender.restingTime === contender.rest) {
                     contender.restingTime = 0;
                     contender.flyingTime = 0;
-                    contender.state = 'running'
+                    contender.state = 'running';
                 }
             }
-            if(contender.distance > leadingDistance){
+            if (contender.distance > leadingDistance) {
                 leadingDistance = contender.distance;
             }
         }
 
-        for(i=0; i<contenders.length; i++){
+        for (i = 0; i < contenders.length; i++) {
             contender = contenders[i];
-            if(contender.distance == leadingDistance){
+            if (contender.distance === leadingDistance) {
                 contender.points++;
             }
-            if(contender.points > winningPoints){
+            if (contender.points > winningPoints) {
                 winningPoints = contender.points;
             }
         }

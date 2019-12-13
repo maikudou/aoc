@@ -1,6 +1,5 @@
 class IntCode {
-    constructor(input = () => null, output = (str) => console.log(str)) {
-        this._input = input;
+    constructor(output = (str) => console.log(str)) {
         this._output = output;
         this._memory = [];
         this._pointer = 0;
@@ -8,8 +7,17 @@ class IntCode {
     setMemory(program) {
         this._memory = program.slice(0);
     }
+    input(value) {
+        this.setValueAt(this.getValueAt(this._pointer + 1), value);
+        this._pointer += 2;
+        this._continue();
+    }
     execute() {
         this._pointer = 0;
+        this._continue();
+    }
+
+    _continue() {
         var nextInstruction = this._memory[this._pointer];
         while (nextInstruction) {
             // console.log(this._pointer, this._memory);
@@ -59,8 +67,6 @@ class IntCode {
                 offset = 4;
                 break;
             case 3:
-                this.setValueAt(this.getValueAt(this._pointer + 1), this._input());
-                offset = 2;
                 break;
             case 4:
                 this._output(this.getValueWithMode(mode1, this._pointer + 1));

@@ -9,7 +9,7 @@ class IntCode {
         this._memory = program.slice(0);
     }
     input(value) {
-        this.setValueAt(this.getValueAt(this._pointer + 1), value);
+        this.setValueAt(this._nextInputOperandMode, this.getValueAt(this._pointer + 1), value);
         this._pointer += 2;
         this._continue();
     }
@@ -33,7 +33,7 @@ class IntCode {
 
     // returns pointer offset after execution
     processInstruction(instruction) {
-        // console.log('processInstruction', instruction);
+        // console.log('processInstruction', instruction, this._pointer, this._relativePointer);
         var opCode = instruction % 100;
         instruction -= opCode;
         instruction = instruction / 100;
@@ -41,36 +41,37 @@ class IntCode {
         instruction -= operand1Mode;
         instruction = instruction / 10;
         var operand2mode = instruction % 10;
-        // instruction -= operand2mode;
-        // instruction = instruction / 10;
-        // var mode3 = instruction % 10;
-        // console.log(opCode, operand1Mode, operand2mode)
-        return this.processOpCode(opCode, operand1Mode, operand2mode);
+        instruction -= operand2mode;
+        instruction = instruction / 10;
+        var operand3mode = instruction % 10;
+        // console.log(opCode, operand1Mode, operand2mode, operand3mode);
+        return this.processOpCode(opCode, operand1Mode, operand2mode, operand3mode);
     }
 
-    processOpCode(opCode, operand1Mode, operand2mode) {
-        console.log(`opCode: ${opCode}\top1m: ${operand1Mode}\t op2m: ${operand2mode}\t op1 ${this._memory[this._pointer + 1]}\t op2? ${this._memory[this._pointer + 2]}\t op3? ${this._memory[this._pointer + 3]}`);
+    processOpCode(opCode, operand1Mode, operand2mode, operand3mode) {
+        // console.log(`opCode: ${opCode}\top1m: ${operand1Mode}\t op2m: ${operand2mode}\t op1 ${this._memory[this._pointer + 1]}\t op2? ${this._memory[this._pointer + 2]}\t op3? ${this._memory[this._pointer + 3]}`);
         var offset = 0;
         switch (opCode) {
             case 1:
                 this.setValueAt(
+                    operand3mode,
                     this.getValueAt(this._pointer + 3),
                     this.getValueWithMode(operand1Mode, this._pointer + 1)
                     + this.getValueWithMode(operand2mode, this._pointer + 2)
                 );
-                console.log('opCode: 1 -- +', this.getPointedValueAt(this._pointer + 3));
                 offset = 4;
                 break;
             case 2:
                 this.setValueAt(
+                    operand3mode,
                     this.getValueAt(this._pointer + 3),
                     this.getValueWithMode(operand1Mode, this._pointer + 1)
                     * this.getValueWithMode(operand2mode, this._pointer + 2)
                 );
-                console.log('opCode: 2 -- *', this.getPointedValueAt(this._pointer + 3));
                 offset = 4;
                 break;
             case 3:
+                this._nextInputOperandMode = operand1Mode;
                 break;
             case 4:
                 this._output(this.getValueWithMode(operand1Mode, this._pointer + 1));
@@ -92,6 +93,7 @@ class IntCode {
                 break;
             case 7:
                 this.setValueAt(
+                    operand3mode,
                     this.getValueAt(this._pointer + 3),
                     this.getValueWithMode(operand1Mode, this._pointer + 1)
                     < this.getValueWithMode(operand2mode, this._pointer + 2)
@@ -101,6 +103,7 @@ class IntCode {
                 break;
             case 8:
                 this.setValueAt(
+                    operand3mode,
                     this.getValueAt(this._pointer + 3),
                     this.getValueWithMode(operand1Mode, this._pointer + 1)
                     === this.getValueWithMode(operand2mode, this._pointer + 2)
@@ -109,9 +112,9 @@ class IntCode {
                 offset = 4;
                 break;
             case 9:
-                this._relativePointer += this.getValueWithMode(operand1Mode, this._pointer + 1)
+                this._relativePointer += this.getValueWithMode(operand1Mode, this._pointer + 1);
                 offset = 2;
-                break
+                break;
             case 99:
                 break;
         }
@@ -121,8 +124,8 @@ class IntCode {
     }
 
     getValueWithMode(mode, pointer) {
-        if(mode === 2) {
-            return this.getValueAt(this._relativePointer +  this.getValueAt(pointer));
+        if (mode === 2) {
+            return this.getValueAt(this._relativePointer + this.getValueAt(pointer));
         } else {
             return mode ? this.getValueAt(pointer) : this.getPointedValueAt(pointer);
         }
@@ -136,8 +139,8 @@ class IntCode {
         return this._memory[this.getValueAt(pointer)] || 0;
     }
 
-    setValueAt(pointer, value) {
-        this._memory[pointer] = value;
+    setValueAt(mode = 0, pointer, value) {
+        this._memory[pointer + (mode === 2 ? this._relativePointer : 0)] = value;
     }
 }
 

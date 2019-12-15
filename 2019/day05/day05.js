@@ -2,8 +2,7 @@ const input = '3,225,1,225,6,6,1100,1,238,225,104,0,1102,31,68,225,1001,13,87,22
 // const input = '1002,4,3,4,33';
 
 const IntCode = require('../intcode');
-const intCode = new IntCode(() => 1);
+const intCode = new IntCode();
 intCode.setMemory(input.split(',').map(num => parseInt(num, 10)));
 intCode.execute();
-// console.log(intCode.getValueAt(0));
-// console.log(intCode._memory);
+intCode.input(1);

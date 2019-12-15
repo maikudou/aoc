@@ -9,3 +9,8 @@ const intCode = new IntCode();
 intCode.setMemory(input.split(',').map(num => parseInt(num, 10)));
 intCode.execute();
 intCode.input(1);
+
+const intCode2 = new IntCode();
+intCode2.setMemory(input.split(',').map(num => parseInt(num, 10)));
+intCode2.execute();
+intCode2.input(2);

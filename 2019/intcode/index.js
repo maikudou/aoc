@@ -1,6 +1,9 @@
 class IntCode {
-    constructor(output = (str) => console.log(str)) {
+    constructor(output = (str) => console.log(str), inputFun) {
         this._output = output;
+        if (inputFun) {
+            this._inputFun = inputFun;
+        }
         this._memory = [];
         this._pointer = 0;
         this._relativePointer = 0;
@@ -16,6 +19,15 @@ class IntCode {
     execute() {
         this._pointer = 0;
         this._continue();
+        return new Promise((resolve) => {
+            this._resolver = resolve;
+        });
+    }
+
+    _onEnded() {
+        if (this._resolver) {
+            this._resolver();
+        }
     }
 
     _continue() {
@@ -72,6 +84,9 @@ class IntCode {
                 break;
             case 3:
                 this._nextInputOperandMode = operand1Mode;
+                if (this._inputFun) {
+                    this.input(this._inputFun());
+                }
                 break;
             case 4:
                 this._output(this.getValueWithMode(operand1Mode, this._pointer + 1));
@@ -116,6 +131,7 @@ class IntCode {
                 offset = 2;
                 break;
             case 99:
+                this._onEnded();
                 break;
         }
         // console.log(offset);

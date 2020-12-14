@@ -44,10 +44,15 @@ function kinetic(a) {
     return Math.abs(a.velocity.x) + Math.abs(a.velocity.y) + Math.abs(a.velocity.z);
 }
 
+function getHash() {
+    return sats.map(sat => `${sat.x}|${sat.y}|${sat.z}|${sat.velocity.x}|${sat.velocity.y}|${sat.velocity.z}`).join('|');
+}
+
 lineReader.on('close', function() {
     var found = false;
     var steps = 0;
-    const hash = sats.map(sat => `${sat.x}|${sat.y}|${sat.z}`).join('|');
+    const states = new Set();
+
     while (!found) {
         // 1 - 2,
         setVel(sats[0], sats[1]);
@@ -67,15 +72,16 @@ lineReader.on('close', function() {
         setPos(sats[2]);
         setPos(sats[3]);
 
-        steps++;
 
-        if (sats.reduce((acc, sat) => {
-            return acc + kinetic(sat);
-        }, 0) === 0 && sats.map(sat => `${sat.x}|${sat.y}|${sat.z}`).join('|') === hash) {
+        const hash = getHash();
+
+        if (states.has(hash)) {
             found = true;
             // console.log(sats);
             break;
         }
+        states.add(hash);
+        steps++;
     }
 
     // console.log(sats);

@@ -9,6 +9,7 @@ lineReader.on('line', function (line) {
     instruction: line.slice(0, 3),
     value: parseInt(line.slice(4)),
     calls: 0
+    inverted: false
   })
 })
 

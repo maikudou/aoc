@@ -1,5 +1,5 @@
 var lineReader = require('readline').createInterface({
-  input: require('fs').createReadStream(__dirname + '/test')
+  input: require('fs').createReadStream(__dirname + '/input')
 })
 
 let startTime
@@ -21,40 +21,61 @@ lineReader.on('line', function (line) {
 })
 
 lineReader.on('close', function () {
-  let timestamp = 0
-  let iterations = 0
-  let smallIterations = 0
-  while (true) {
-    iterations++
-    let prevTo = -1
-    let i = 0
-    for (i = 0; i < busses.length; i++) {
-      const bus = busses[i]
-      if (bus == 'x') {
-        prevTo++
-      } else {
-        let timeSince = timestamp % bus
-        let timeTo = timeSince == 0 ? 0 : bus - timeSince
-        if (timeTo == prevTo + 1) {
-          prevTo++
-        } else if (timeTo > prevTo + 1) {
-          while (timeTo != prevTo + 1) {
-            smallIterations++
-            timestamp += busses[0]
-            timeSince = timestamp % bus
-            timeTo = timeSince == 0 ? 0 : bus - timeSince
-          }
-          timestamp -= busses[0]
-          break
-        } else {
+  const bussesWithIdsIndices = busses.reduce((acc, value, index) => {
+    if (value != 'x') {
+      acc.push(index)
+    }
+    return acc
+  }, [])
+  const periods = bussesWithIdsIndices.reduce((acc, value, index, array) => {
+    if (acc.length) {
+      const indexDiff = value - array[index - 1]
+      let timestamp = 0
+      let periodStarted
+      const prevBus = busses[array[index - 1]]
+      const currentBus = busses[value]
+      while (true) {
+        let timeSince = timestamp % prevBus
+        let timeTo = timeSince == 0 ? 0 : prevBus - timeSince
+
+        let timeSinceCurrent = timestamp % currentBus
+        let timeToCurrent = timeSinceCurrent == 0 ? 0 : currentBus - timeSinceCurrent
+
+        if (!periodStarted && timeTo == 0 && timeToCurrent == timeTo + indexDiff) {
+          periodStarted = timestamp
+          timestamp++
+          continue
+        }
+        if (periodStarted && timeTo == 0 && timeToCurrent == timeTo + indexDiff) {
+          acc.push([array[index - 1], periodStarted, timestamp - periodStarted])
           break
         }
+
+        timestamp++
+      }
+    } else {
+      acc.push([-1, 0, busses[value]])
+    }
+    return acc
+  }, [])
+  periods.shift()
+  periods.sort((a, b) => (a[2] < b[2] ? 1 : a[2] == b[2] ? 0 : -1))
+
+  let multiplier = 1
+  let ts
+
+  while (true) {
+    ts = periods[0][2] * multiplier + periods[0][1] - periods[0][0]
+    for (var i = 1; i < periods.length; i++) {
+      if ((ts - periods[i][1] + periods[i][0]) % periods[i][2]) {
+        break
       }
     }
-    if (i == busses.length) {
+    if (i == periods.length) {
       break
     }
-    timestamp += busses[0]
+    multiplier++
   }
-  console.log(timestamp, iterations, smallIterations)
+
+  console.log(ts)
 })

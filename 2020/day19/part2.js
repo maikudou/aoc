@@ -1,16 +1,9 @@
 var lineReader = require('readline').createInterface({
-  input: require('fs').createReadStream(__dirname + '/test2')
+  input: require('fs').createReadStream(__dirname + '/input')
 })
 
 let validatorsFinished = false
 let validators = new Map()
-let parsedValidators = new Map()
-let validStrings = new Set()
-const lines = []
-
-const parseValidators = () => {
-  validStrings = new Set(buildStrings('0'))
-}
 
 const buildStrings = index => {
   const rules = validators.get(index)
@@ -21,7 +14,6 @@ const buildStrings = index => {
     rules.map(rule => {
       let strings = rule.reduce((acc, value) => {
         if (value == index) {
-          console.log('recursion', rule, acc)
           value = [`rec${value}`]
         } else {
           value = buildStrings(value)
@@ -46,25 +38,50 @@ const buildStrings = index => {
 }
 
 let count = 0
-let maxLine = 0
+let strings42
+let strings42size
+let strings31
+let strings31size
 
 lineReader.on('line', function (line) {
   if (!validatorsFinished) {
     if (!line) {
       validatorsFinished = true
+      strings42 = buildStrings('42')
+      strings42size = strings42[0].length
+      strings42 = new Set(strings42)
+      strings31 = buildStrings('31')
+      strings31size = strings31[0].length
+      strings31 = new Set(strings31)
       return
     }
     const [_, index, letter, links] = /^(\d+): (?:"(\w)"|([\d \|]+))$/.exec(line)
     validators.set(index, letter ? letter : links.split(' | ').map(links => links.split(' ')))
   } else {
-    lines.push(line)
-    maxLine = Math.max(maxLine, line.length)
+    let count42 = 0
+    let count31 = 0
+    while ((line.length && line.length >= strings42size) || line.length >= strings31size) {
+      if (
+        !strings42.has(line.substring(0, strings42size)) &&
+        !strings31.has(line.substring(line.length - strings31size))
+      ) {
+        break
+      }
+      if (strings42.has(line.substring(0, strings42size))) {
+        count42++
+        line = line.substring(strings42size)
+      }
+      if (strings31.has(line.substring(line.length - strings31size))) {
+        count31++
+        line = line.substring(0, line.length - strings31size)
+      }
+    }
+    if (line.length == 0 && count31 && count42 && count31 < count42) {
+      count++
+    }
   }
 })
 
 lineReader.on('close', function () {
-  console.log(maxLine)
-  parseValidators()
-  // console.log(validStrings)
   console.log(count)
 })

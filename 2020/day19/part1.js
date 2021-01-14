@@ -4,12 +4,6 @@ var lineReader = require('readline').createInterface({
 
 let validatorsFinished = false
 let validators = new Map()
-let parsedValidators = new Map()
-let validStrings = new Set()
-
-const parseValidators = () => {
-  validStrings = new Set(buildStrings('0'))
-}
 
 const buildStrings = index => {
   const rules = validators.get(index)
@@ -40,19 +34,34 @@ const buildStrings = index => {
 }
 
 let count = 0
+let strings42
+let strings42size
+let strings31
+let strings31size
 
 lineReader.on('line', function (line) {
   if (!validatorsFinished) {
     if (!line) {
       validatorsFinished = true
-      parseValidators()
+      strings42 = buildStrings('42')
+      strings42size = strings42[0].length
+      strings42 = new Set(strings42)
+      strings31 = buildStrings('31')
+      strings31size = strings31[0].length
+      strings31 = new Set(strings31)
       return
     }
     const [_, index, letter, links] = /^(\d+): (?:"(\w)"|([\d \|]+))$/.exec(line)
     validators.set(index, letter ? letter : links.split(' | ').map(links => links.split(' ')))
   } else {
-    if (validStrings.has(line)) {
-      count++
+    if (line.length == strings42size + strings42size + strings31size) {
+      if (
+        strings42.has(line.substring(0, strings42size)) &&
+        strings42.has(line.substring(strings42size, strings42size * 2)) &&
+        strings31.has(line.substring(line.length - strings31size))
+      ) {
+        count++
+      }
     }
   }
 })

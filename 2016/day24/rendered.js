@@ -1,6 +1,6 @@
 const { Heap } = require('../../utils/Heap')
 const { createCanvas } = require('canvas')
-const { createWriteStream, writeFileSync } = require('fs')
+const { writeFileSync } = require('fs')
 const { join } = require('path')
 
 class MinHeap extends Heap {
@@ -10,7 +10,7 @@ class MinHeap extends Heap {
 }
 
 var lineReader = require('readline').createInterface({
-  input: require('fs').createReadStream(__dirname + '/test')
+  input: require('fs').createReadStream(__dirname + '/input')
 })
 const map = new Map()
 const nodes = new Map()
@@ -53,11 +53,11 @@ lineReader.on('line', function (line) {
       map.set(`${index}|${lineNum}`, { x: index, y: lineNum, distTo: Infinity })
     }
     if (!isNaN(value)) {
-      // paint(index, lineNum, 'node')
+      paint(index, lineNum, 'node')
       nodes.set(value, { x: index, y: lineNum })
       nodesByCoords.add(`${index}|${lineNum}`)
     } else {
-      // paint(index, lineNum, value == '#' ? 'wall' : 'space')
+      paint(index, lineNum, value == '#' ? 'wall' : 'space')
     }
   })
   lineNum++
@@ -122,8 +122,8 @@ lineReader.on('close', function () {
   // console.log(map)
   console.log(nodes)
 
-  // var out = join(__dirname, 'render', `!start.png`)
-  // writeFileSync(out, canvas.toBuffer())
+  var out = join(__dirname, 'render', `!start.png`)
+  writeFileSync(out, canvas.toBuffer())
 
   const neihgbours = []
   Array.from(nodes.entries()).forEach(([id, node]) => {

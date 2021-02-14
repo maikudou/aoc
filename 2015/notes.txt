@@ -1,0 +1,6 @@
+day 4 part 2 suboptimal?
+day 6 suboptimal, replace object with map
+day 13 suboptimal, especially part 2
+day 19 part 2 suboptimal
+day 20 suboptimal
+day 22 is not right

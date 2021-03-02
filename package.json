@@ -1,0 +1,13 @@
+{
+  "name": "aoc",
+  "version": "1.0.0",
+  "description": "Advent of code",
+  "repository": "git@github.com:maikudou/aoc.git",
+  "author": "Mike Labanov <maikudou@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "dependencies": {
+    "canvas": "^2.6.1",
+    "prettier": "^2.2.1"
+  }
+}

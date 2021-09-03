@@ -1,83 +1,6 @@
 const { QuickUnion } = require('../../utils/QuickUnion')
-
-function getKnotHash(input) {
-  input = input
-    .split('')
-    .map(function (string) {
-      return string.codePointAt()
-    })
-    .concat([17, 31, 73, 47, 23])
-
-  var nodes = []
-  for (var i = 0; i < 256; i++) {
-    nodes.push(i)
-  }
-
-  var pos = 0
-  var replacePos
-  var skip = 0
-  var length
-  var selected
-  var change
-
-  for (var round = 0; round < 64; round++) {
-    for (var i = 0; i < input.length; i++) {
-      length = input[i]
-      if (length > nodes.length) {
-        continue
-      }
-      change = pos + length - nodes.length
-      selected = nodes.slice(pos, pos + length)
-
-      if (change > 0) {
-        selected = selected.concat(nodes.slice(0, change))
-      }
-      selected.reverse()
-
-      if (pos >= nodes.length) {
-        console.log(pos)
-      }
-
-      replacePos = pos
-      for (var j = 0; j < selected.length; j++) {
-        if (replacePos == nodes.length) {
-          replacePos = 0
-        }
-
-        if (replacePos >= nodes.length) {
-          // console.log(replacePos);
-        }
-
-        nodes[replacePos] = selected[j]
-
-        replacePos++
-      }
-
-      pos += length + skip
-
-      while (pos >= nodes.length) {
-        pos = pos - nodes.length
-      }
-
-      skip++
-    }
-  }
-
-  var sparse = []
-  var xored
-  for (i = 0; i < 16; i++) {
-    xored = 0
-    for (k = 0; k < 16; k++) {
-      xored = xored ^ nodes[16 * i + k]
-    }
-    if (xored > 15) {
-      sparse.push(xored.toString(16))
-    } else {
-      sparse.push('0' + xored.toString(16))
-    }
-  }
-  return sparse.join('')
-}
+const getKnotHash = require('./knotHash')
+const input = require('./input')
 
 function getBinary(hash) {
   return hash
@@ -90,10 +13,11 @@ function getBinary(hash) {
 }
 
 var nodes = []
-var union = new QuickUnion(128 * 128)
+var union = new QuickUnion(16384)
 
+// get the 128x128 grid of 1s and 0s
 for (var i = 0; i < 128; i++) {
-  var binary = getBinary(getKnotHash('flqrgnkx-' + i))
+  var binary = getBinary(getKnotHash(`${input}-${i}`))
     .split('')
     .map(Number)
   nodes = nodes.concat(binary)
@@ -101,21 +25,23 @@ for (var i = 0; i < 128; i++) {
 
 for (var i = 0; i < 16384; i++) {
   if (nodes[i]) {
+    // connect filled node to the right
     if ((i + 1) % 128 && nodes[i + 1]) {
       union.union(i, i + 1)
     }
-    if (i < 16384 - 128 && nodes[i]) {
+    // connect node below
+    if (nodes[i + 128]) {
       union.union(i, i + 128)
     }
   }
 }
 
-var roots = {}
+var roots = new Set()
 
 for (var i = 0; i < 16384; i++) {
   if (nodes[i]) {
-    roots[union.root(i)] = true
+    roots.add(union.root(i))
   }
 }
 
-console.log(Object.keys(roots).length)
+console.log(roots.size)

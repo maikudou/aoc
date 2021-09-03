@@ -11,7 +11,7 @@ module.exports = {
     }
 
     root(i) {
-      if (i != this.id[i]) {
+      while (i != this.id[i]) {
         i = this.id[i]
       }
 

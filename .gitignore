@@ -3,3 +3,6 @@ node_modules
 yarn-error.log
 .yarnrc
 yarn.lock
+package-lock.json
+
+.DS_Store

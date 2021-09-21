@@ -1,2 +1,2 @@
 day 11 solved but missing
-day 14 part 2 unsolved
+day 17 part 2 too long, try use remainders instead of linked list

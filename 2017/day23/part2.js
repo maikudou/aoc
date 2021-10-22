@@ -28,51 +28,9 @@ function value(operand) {
 lineReader.on('close', function () {
   let cycle23Delta = null
   let counter = 0
-  let tick = 1
-  let tick2 = 0
-  while (instructionPointer > -1 && instructionPointer < instructions.length) {
+
+  while (instructionPointer > -1 && instructionPointer < 10) {
     const { name, operand1, operand2 } = instructions[instructionPointer]
-    if (instructionPointer === 19) {
-      // e and g grow by 1 in this cycle
-      const iterationsTillNextZeroG = 0 - registers.g
-      // // we need to know if it's possible what b == d * e during this cycle
-      // if (
-      //   registers.d * registers.e < registers.b &&
-      //   registers.d * (registers.e + iterationsTillNextZeroG) > registers.b
-      // ) {
-      //   // if it's possible register f should be 0
-      //   registers.f = 0
-      // }
-      registers.f = tick ? 0 : 1
-      tick = registers.f
-      registers.g = 0
-      registers.e += iterationsTillNextZeroG
-    }
-
-    // if (instructionPointer === 20) {
-    //   console.log(20, registers)
-    // }
-
-    if (instructionPointer === 23) {
-      // d and g grow by 1 in this cycle
-      // d shrinks by 1
-      const iterationsTillNextZeroG = 0 - registers.g
-      registers.g = 0
-      registers.d += iterationsTillNextZeroG
-      registers.f = tick2 == 0 ? 1 : tick2 == 1 ? 0 : tick2 == 2 ? 0 : 1
-      tick2++
-      if (tick2 > 3) {
-        tick2 = 0
-      }
-    }
-
-    // if (instructionPointer === 24) {
-    //   console.log(24, registers)
-    //   if (counter > 40) {
-    //     process.exit(1)
-    //   }
-    //   counter++
-    // }
 
     switch (name) {
       case 'set':
@@ -96,5 +54,24 @@ lineReader.on('close', function () {
         break
     }
   }
-  console.log(registers.h)
+  console.log(registers)
+
+  while (true) {
+    registers.f = 1
+    registers.d = 2
+    do {
+      if (registers.b % registers.d == 0) registers.f = 0
+
+      registers.d++
+    } while (registers.d !== registers.b)
+
+    if (registers.f == 0) {
+      registers.h = (registers.h || 0) + 1
+    }
+    if (registers.b == registers.c) {
+      console.log(registers.h)
+      process.exit()
+    }
+    registers.b += 17
+  }
 })

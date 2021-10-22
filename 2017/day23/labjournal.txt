@@ -1,0 +1,33 @@
+set b 84
+set c b
+jnz a 2 >---|
+jnz 1 5     |
+mul b 100 <-|
+sub b -100000
+set c b
+sub c -17000
+set f 1 <---|
+set d 2     |
+set e 2 <---|-----|
+set g d <---|--|  | d and b do not change is c19
+mul g e     |  |  |
+sub g b     |  |  |
+jnz g 2 >--||  |  |
+set f 0    ||  |  | when b == d * e <-- we basically need to know if f is 1 or 0 in the end of c19
+sub e -1 <-||  |  | e grows by 1 in c19
+set g e     |  |  |
+sub g b     |  |  | g grows by 1 in c19 because b does not change and g is set to growing e
+jnz g -8 >--|--|  |
+sub d -1    |     | d grows by 1 in c23
+set g d     |     |
+sub g b     |     |
+jnz g -13 >-|-----|
+jnz f 2 >-| |
+sub h -1  | |
+set g b <-| |
+sub g c     |
+jnz g 2 ----|----|
+jnz 1 3  >--|--| |
+sub b -17 <-|--|-|
+jnz 1 -23 >-|  |
+              end

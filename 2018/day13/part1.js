@@ -118,7 +118,6 @@ lineReader.on('close', function () {
     cartPositions.add(`${cart.position.x},${cart.position.y}`)
   }
   while (!collision) {
-    let newCartPositions = new Set()
     carts = carts.sort((a, b) => {
       return a.position.y - b.position.y == 0
         ? a.position.x - b.position.x

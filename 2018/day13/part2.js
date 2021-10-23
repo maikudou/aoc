@@ -112,13 +112,12 @@ function rotateCorner(corner, direction) {
 }
 
 lineReader.on('close', function () {
-  let collision = false
-  let cartPositions = new Set()
+  let lastCartPosition = false
+  let cartPositions = new Map()
   for (let cart of carts) {
-    cartPositions.add(`${cart.position.x},${cart.position.y}`)
+    cartPositions.set(`${cart.position.x},${cart.position.y}`, cart)
   }
-  while (!collision) {
-    let newCartPositions = new Set()
+  while (!lastCartPosition) {
     carts = carts.sort((a, b) => {
       return a.position.y - b.position.y == 0
         ? a.position.x - b.position.x
@@ -126,6 +125,9 @@ lineReader.on('close', function () {
     })
 
     for (let cart of carts) {
+      if (cart.collided) {
+        continue
+      }
       let cartNewPosition = {
         ...cart.position
       }
@@ -147,11 +149,13 @@ lineReader.on('close', function () {
       const positionHash = `${cartNewPosition.x},${cartNewPosition.y}`
 
       if (cartPositions.has(positionHash)) {
-        collision = positionHash
-        break
+        cart.collided = true
+        cartPositions.get(positionHash).collided = true
+        cartPositions.delete(`${cart.position.x},${cart.position.y}`)
+        cartPositions.delete(positionHash)
       } else {
         cartPositions.delete(`${cart.position.x},${cart.position.y}`)
-        cartPositions.add(positionHash)
+        cartPositions.set(positionHash, cart)
         cart.position = {
           ...cartNewPosition
         }
@@ -174,6 +178,9 @@ lineReader.on('close', function () {
         }
       }
     }
+    if (cartPositions.size == 1) {
+      lastCartPosition = Array.from(cartPositions.keys())[0]
+    }
   }
-  console.log(collision)
+  console.log(lastCartPosition)
 })

@@ -27,15 +27,11 @@ lineReader.on('close', function () {
 
   registers[ip] = 0
   while (registers[ip] >= 0 && registers[ip] < program.length) {
-    // console.log(registers[ip], '\t', registers)
     if (registers[ip] === 4) {
-      console.log(registers)
       break
-      // registers[3] = registers[5]
     }
     const { opCode, op1, op2, op3 } = program[registers[ip]]
     runOpCode(opCode, op1, op2, op3, registers)
-    // console.log(opCode, op1, op2, op3, registers)
     registers[ip]++
   }
 

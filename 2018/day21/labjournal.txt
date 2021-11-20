@@ -1,0 +1,32 @@
+#ip
+0  seti 123 0 4
+1  bani 4 456 4
+2  eqri 4 72 4
+3  addr 4 1 1
+4  seti 0 0 1
+5  seti 0 2 4
+6  bori 4 65536 3
+7  seti 10552971 1 4
+8  bani 3 255 5 <----------|
+9  addr 4 5 4              |
+10 bani 4 16777215 4       |
+11 muli 4 65899 4          |
+12 bani 4 16777215 4       |
+13 gtir 256 3 5            |
+14 addr 5 1 1              |
+15 addi 1 1 1              |
+16 seti 27 7 1 >-----|     |
+17 seti 0 1 5        |     |
+18 addi 5 1 2 <------|--|  |
+19 muli 2 256 2      |  |  |
+20 gtrr 2 3 2        |  |  |
+21 addr 2 1 1        |  |  |
+22 addi 1 1 1 -|     |  |  |
+23 seti 25 0 1 | >-| |  |  |
+24 addi 5 1 5 <|   | |  |  |
+25 seti 17 2 1 >---|-|--|  |
+26 setr 5 7 3 <----| |     |   set [3] to [5]
+27 seti 7 8 1 >------|-----|
+28 eqrr 4 0 5 <------|         if [4] == [0] set [5] to 1, else to 0
+29 addr 5 1 1                if [5] == 1 >EXIT< (if [4] == [0])
+30 seti 5 0 1                otherwise go to 1

@@ -1,11 +1,29 @@
 const manhattanDistance = require('../../utils/manhattanDistance')
+const { Heap } = require('../../utils/Heap')
+
+class MinXHeap extends Heap {
+  _compare(a, b) {
+    return a.x + a.r < b.x + b.r
+  }
+}
+
+class MinYHeap extends Heap {
+  _compare(a, b) {
+    return a.y + a.r < b.y + b.r
+  }
+}
+
+class MinZHeap extends Heap {
+  _compare(a, b) {
+    return a.z + a.r < b.z + b.r
+  }
+}
 
 var lineReader = require('readline').createInterface({
   input: require('fs').createReadStream(__dirname + '/input')
 })
 
 const bots = []
-let result = Infinity
 
 lineReader.on('line', function (line) {
   const [_, x, y, z, r] = /pos=<(\-?\d+),(\-?\d+),(\-?\d+)>, r=(\d+)/.exec(line)
@@ -13,108 +31,187 @@ lineReader.on('line', function (line) {
 })
 
 lineReader.on('close', function () {
-  bots.forEach(bot => {
-    bot.intersectsWith = []
-    bots.forEach(otherBot => {
-      if (otherBot !== bot) {
-        distance = manhattanDistance(bot, otherBot)
-        if (bot.r + otherBot.r >= distance) {
-          bot.intersectsWith.push(otherBot)
-        }
-      }
-    })
-  })
-  const onlyTopBots = bots
-    .sort((a, b) => b.intersectsWith.length - a.intersectsWith.length)
-    .reduce((acc, value) => {
-      value.intersectsWith = value.intersectsWith.sort((a, b) =>
-        a.r == b.r ? b.intersectsWith.length - a.intersectsWith.length : a.r - b.r
+  const sortedXBots = bots.slice().sort((a, b) => a.x - a.r - (b.x - b.r))
+  const sortedYBots = bots.slice().sort((a, b) => a.y - a.r - (b.y - b.r))
+  const sortedZBots = bots.slice().sort((a, b) => a.z - a.r - (b.z - b.r))
+
+  let maxXResult = []
+  let maxYResult = []
+  let maxZResult = []
+
+  const { minX, maxX, minY, maxY, minZ, maxZ } = bots.reduce(
+    (acc, bot) => ({
+      minX: Math.min(acc.minX, bot.x - bot.r),
+      maxX: Math.max(acc.maxX, bot.x + bot.r),
+      minY: Math.min(acc.minY, bot.y - bot.r),
+      maxY: Math.max(acc.maxY, bot.y + bot.r),
+      minZ: Math.min(acc.minZ, bot.z - bot.r),
+      maxZ: Math.max(acc.maxZ, bot.z + bot.r)
+    }),
+    {
+      minX: Infinity,
+      maxX: -Infinity,
+      minY: Infinity,
+      maxY: -Infinity,
+      minZ: Infinity,
+      maxZ: -Infinity
+    }
+  )
+
+  const XHeap = new MinXHeap()
+  const YHeap = new MinYHeap()
+  const ZHeap = new MinXHeap()
+
+  for (let x = minX; x <= maxX; x++) {
+    while (sortedXBots.length && sortedXBots[0].x - sortedXBots[0].r == x) {
+      XHeap.insert(sortedXBots.shift())
+    }
+    while (XHeap.length && XHeap.getTop().x + XHeap.getTop().r < x) {
+      XHeap.pop()
+    }
+
+    let nextX = x
+    if (sortedXBots.length || XHeap.length) {
+      nextX = Math.max(
+        x,
+        Math.min(
+          sortedXBots.length ? sortedXBots[0].x - sortedXBots[0].r : Infinity,
+          XHeap.length ? XHeap.getTop().x + XHeap.getTop().r : Infinity
+        ) - 1
       )
-      if (acc.length) {
-        if (value.intersectsWith.length == acc[0].intersectsWith.length) {
-          acc.push(value)
-        }
-      } else {
-        acc.push(value)
-      }
-      return acc
-    }, [])
-  const maximumBots = onlyTopBots[0].intersectsWith.length
-  // console.log(onlyTopBots, maximumBots)
-  const minimalTopBots = onlyTopBots
-    .reduce((acc, bot) => {
-      return acc.concat(
-        bot.intersectsWith
-          .filter(bot => bot.intersectsWith.length === maximumBots)
-          .reduce((acc, value) => {
-            if (acc.length) {
-              if (
-                value.r === acc[0].r &&
-                value.intersectsWith.length == acc[0].intersectsWith.length
-              ) {
-                acc.push(value)
-              }
-            } else {
-              acc.push(value)
-            }
-            return acc
-          }, [])
-      )
-    }, [])
-    .sort((a, b) => a.r - b.r)
-    .reduce((acc, value) => {
-      if (acc.length) {
-        if (value.r === acc[0].r) {
-          acc.push(value)
-        }
-      } else {
-        acc.push(value)
-      }
-      return acc
-    }, [])
-    .reduce((acc, value) => {
-      if (acc.indexOf(value) == -1) {
-        acc.push(value)
-      }
-      return acc
-    }, [])
-  // console.log(minimalTopBots)
-  minimalTopBots.forEach(bot => {
-    const marginals = bot.intersectsWith.reduce(
-      (acc, otherBot) => {
-        let leftBot
-        let rightBot
-        if (bot.x < otherBot.x) {
-          leftBot = bot
-          rightBot = otherBot
-        } else {
-          rightBot = bot
-          leftBot = otherBot
-        }
-        const minX = Math.max(rightBot.x - rightBot.r, leftBot.x - leftBot.r)
-        const maxX = Math.min(leftBot.x + leftBot.r, rightBot.x + rightBot.r)
-        acc.minX = Math.max(acc.minX, minX)
-        acc.maxX = Math.min(acc.maxX, maxX)
-        console.log(minX, maxX, acc)
-        return acc
-      },
-      { minX: -Infinity, maxX: Infinity }
-    )
-    console.log(marginals)
-    process.exit(1)
-    for (var x = bot.x - bot.r; x <= bot.x + bot.r; x++) {
-      for (var y = bot.y - bot.r; y <= bot.y + bot.r; y++) {
-        for (var z = bot.z - bot.r; z <= bot.z + bot.r; z++) {
-          const botsInRange = bot.intersectsWith.reduce((acc, bot) => {
-            return acc + (bot.r >= manhattanDistance(bot, { x, y, z }) ? 1 : 0)
-          }, 0)
-          if (botsInRange + 1 == maximumBots) {
-            const zeroDistance = manhattanDistance({ x: 0, y: 0, z: 0 }, { x, y, z })
-            result = Math.min(result, zeroDistance)
+    }
+    if (maxXResult.length == 0) {
+      maxXResult.push({
+        start: x,
+        end: nextX,
+        count: XHeap.length
+      })
+    } else {
+      if (maxXResult[0].count < XHeap.length) {
+        maxXResult = [
+          {
+            start: x,
+            end: nextX,
+            count: XHeap.length
           }
+        ]
+      } else if (maxXResult[0].count == XHeap.length) {
+        if (maxXResult[maxXResult.length - 1].end === x - 1) {
+          maxXResult[maxXResult.length - 1].end = nextX
+        } else {
+          maxXResult.push({
+            start: x,
+            end: nextX,
+            count: XHeap.length
+          })
         }
       }
     }
-  })
-  console.log(result)
+    x = nextX
+  }
+  console.log('x', maxXResult)
+
+  for (let y = minY; y <= maxY; y++) {
+    while (sortedYBots.length && sortedYBots[0].y - sortedYBots[0].r == y) {
+      YHeap.insert(sortedYBots.shift())
+    }
+    while (YHeap.length && YHeap.getTop().y + YHeap.getTop().r < y) {
+      YHeap.pop()
+    }
+    let nextY = y
+    if (sortedYBots.length || YHeap.length) {
+      nextY = Math.max(
+        y,
+        Math.min(
+          sortedYBots.length ? sortedYBots[0].y - sortedYBots[0].r : Infinity,
+          YHeap.length ? YHeap.getTop().y + YHeap.getTop().r : Infinity
+        ) - 1
+      )
+    }
+
+    if (maxYResult.length == 0) {
+      maxYResult.push({
+        start: y,
+        end: nextY,
+        count: YHeap.length
+      })
+    } else {
+      if (maxYResult[0].count < YHeap.length) {
+        maxYResult = [
+          {
+            start: y,
+            end: nextY,
+            count: YHeap.length
+          }
+        ]
+      } else if (maxYResult[0].count == YHeap.length) {
+        if (maxYResult[maxYResult.length - 1].end === y - 1) {
+          maxYResult[maxYResult.length - 1].end = nextY
+        } else {
+          maxYResult.push({
+            start: y,
+            end: nextY,
+            count: YHeap.length
+          })
+        }
+      }
+    }
+
+    y = nextY
+  }
+  console.log('y', maxYResult)
+
+  for (let z = minZ; z <= maxZ; z++) {
+    while (sortedZBots.length && sortedZBots[0].z - sortedZBots[0].r == z) {
+      ZHeap.insert(sortedZBots.shift())
+    }
+    while (ZHeap.length && ZHeap.getTop().z + ZHeap.getTop().r < z) {
+      ZHeap.pop()
+    }
+    let nextX = z
+    if (sortedZBots.length || ZHeap.length) {
+      nextZ = Math.max(
+        z,
+        Math.min(
+          sortedZBots.length ? sortedZBots[0].z - sortedZBots[0].r : Infinity,
+          ZHeap.length ? ZHeap.getTop().z + ZHeap.getTop().r : Infinity
+        ) - 1
+      )
+    }
+
+    if (maxZResult.length == 0) {
+      maxZResult.push({
+        start: z,
+        end: nextZ,
+        count: ZHeap.length
+      })
+    } else {
+      if (maxZResult[0].count < ZHeap.length) {
+        maxZResult = [
+          {
+            start: z,
+            end: nextZ,
+            count: ZHeap.length
+          }
+        ]
+      } else if (maxZResult[0].count == ZHeap.length) {
+        if (maxZResult[maxZResult.length - 1].end === z - 1) {
+          maxZResult[maxZResult.length - 1].end = nextZ
+        } else {
+          maxZResult.push({
+            start: z,
+            end: nextZ,
+            count: ZHeap.length
+          })
+        }
+      }
+    }
+    z = nextZ
+  }
+  console.log('z', maxZResult)
+  // for (let x = maxXResult[0].start; x <= maxXResult[0].end; x++) {
+  //   for (let y = maxYResult[0].start; y <= maxYResult[0].end; y++) {
+  //     for (let z = maxZResult[0].start; z <= maxZResult[0].end; z++) {}
+  //   }
+  // }
 })

@@ -1,3 +1,3 @@
 day 6 may be done faster?
 day 11 part 2 can be done better?
-day 12 part 2 unsolved
+day 24 part 2 unsolved

@@ -24,6 +24,7 @@ var lineReader = require('readline').createInterface({
 })
 
 const bots = []
+const zero = { x: 0, y: 0, z: 0 }
 
 lineReader.on('line', function (line) {
   const [_, x, y, z, r] = /pos=<(\-?\d+),(\-?\d+),(\-?\d+)>, r=(\d+)/.exec(line)
@@ -209,9 +210,14 @@ lineReader.on('close', function () {
     z = nextZ
   }
   console.log('z', maxZResult)
-  // for (let x = maxXResult[0].start; x <= maxXResult[0].end; x++) {
-  //   for (let y = maxYResult[0].start; y <= maxYResult[0].end; y++) {
-  //     for (let z = maxZResult[0].start; z <= maxZResult[0].end; z++) {}
-  //   }
-  // }
+  for (let x = maxXResult[0].start; x <= maxXResult[0].end; x++) {
+    for (let y = maxYResult[0].start; y <= maxYResult[0].end; y++) {
+      for (let z = maxZResult[0].start; z <= maxZResult[0].end; z++) {
+        const count = bots.reduce((acc, value) => {
+          return acc + (manhattanDistance(value, { x, y, z }) <= value.r ? 1 : 0)
+        }, 0)
+        // console.log(x, y, z, manhattanDistance(zero, { x, y, z }), count)
+      }
+    }
+  }
 })

@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+if ! [[ -e $1 ]];then
+    mkdir $1
+fi
 if ! [[ -e $1/day$2 ]];then
     mkdir $1/day$2
 fi

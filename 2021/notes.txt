@@ -1,1 +1,2 @@
 day 12 part 2 is too long
+fay 17 is hacky, does not have clear stop criteria

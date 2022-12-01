@@ -6,6 +6,8 @@ Solution are mostly in JS
 
 ### Status
 
+- **2022** — [ ] 0 stars
+- **2021** — [ ] 43 stars
 - **2020** — [x] 50 stars
 - **2019** — [ ] 26 stars
 - **2018** — [ ] 23 stars

@@ -1,0 +1,80 @@
+const toDecimal = require('../../utils/toDecimal')
+
+var lineReader = require('readline').createInterface({
+  input: require('fs').createReadStream(__dirname + '/input')
+})
+
+const packets = [[[2]], [[6]]]
+
+function parseLine(line) {
+  const stack = [[]]
+  let str = ''
+  let parsed
+  line.split('').forEach(char => {
+    switch (char) {
+      case '[':
+        const arr = []
+        stack[stack.length - 1].push(arr)
+        stack.push(arr)
+        break
+      case ']':
+        if (str) {
+          stack[stack.length - 1].push(toDecimal(str))
+          str = ''
+        }
+        parsed = stack.pop()
+        break
+      case ',':
+        if (str) {
+          stack[stack.length - 1].push(toDecimal(str))
+          str = ''
+        }
+        break
+      default:
+        str = `${str}${char}`
+        break
+    }
+  })
+  return parsed
+}
+
+function compare(left, right) {
+  // console.log(left, '|', right)
+  if (!Array.isArray(left) && !Array.isArray(right)) {
+    return left - right
+  }
+  if (!Array.isArray(left) && Array.isArray(right)) {
+    return compare([left], right)
+  }
+  if (Array.isArray(left) && !Array.isArray(right)) {
+    return compare(left, [right])
+  }
+  if (Array.isArray(left) && Array.isArray(right)) {
+    let comparison = 0
+    for (let i = 0; i < left.length; i++) {
+      if (typeof right[i] !== 'undefined') {
+        comparison = compare(left[i], right[i]) || comparison
+      }
+      if (comparison != 0) {
+        break
+      }
+    }
+    if (!comparison) {
+      comparison = left.length - right.length
+    }
+    return comparison
+  }
+}
+
+lineReader.on('line', function (line) {
+  if (line) {
+    packets.push(parseLine(line))
+  }
+})
+
+lineReader.on('close', function () {
+  packets.sort(compare)
+  const index2 = packets.findIndex(packet => JSON.stringify(packet) === '[[2]]') + 1
+  const index6 = packets.findIndex(packet => JSON.stringify(packet) === '[[6]]') + 1
+  console.log(index2 * index6)
+})

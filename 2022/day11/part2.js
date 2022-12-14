@@ -1,8 +1,7 @@
-const { count } = require('console')
 const toDecimal = require('../../utils/toDecimal')
 
 var lineReader = require('readline').createInterface({
-  input: require('fs').createReadStream(__dirname + '/test')
+  input: require('fs').createReadStream(__dirname + '/input')
 })
 
 const monkeyRE = /Monkey (\d+)/
@@ -13,19 +12,21 @@ const ifTrueRE = /If true: throw to monkey (\d+)$/
 const ifFalseRE = /If false: throw to monkey (\d+)$/
 
 const monkeys = []
+let devisorsProduct = 1
 
 lineReader.on('line', function (line) {
   if (monkeyRE.test(line)) {
     monkeys.push({ inspected: 0 })
   } else if (startingItemsRE.test(line)) {
     const [_, startingItems] = startingItemsRE.exec(line)
-    monkeys[monkeys.length - 1].items = startingItems.split(', ').map(toDecimal).map(BigInt)
+    monkeys[monkeys.length - 1].items = startingItems.split(', ').map(toDecimal)
   } else if (operationRE.test(line)) {
     const [_, operand1, operation, operand2] = operationRE.exec(line)
     monkeys[monkeys.length - 1].operation = [operand1, operand2, operation]
   } else if (testRE.test(line)) {
     const [_, devisibleBy] = testRE.exec(line)
-    monkeys[monkeys.length - 1].devisibleBy = BigInt(toDecimal(devisibleBy))
+    monkeys[monkeys.length - 1].devisibleBy = toDecimal(devisibleBy)
+    devisorsProduct *= toDecimal(devisibleBy)
   } else if (ifTrueRE.test(line)) {
     const [_, ifTrue] = ifTrueRE.exec(line)
     monkeys[monkeys.length - 1].ifTrue = toDecimal(ifTrue)
@@ -36,16 +37,17 @@ lineReader.on('line', function (line) {
 })
 
 lineReader.on('close', function () {
-  for (let i = 0; i < 20; i++) {
+  for (let i = 0; i < 10000; i++) {
     monkeys.forEach((monkey, index) => {
       let item
       while ((item = monkey.items.shift())) {
         monkey.inspected++
-        const operand1 =
-          monkey.operation[0] === 'old' ? item : BigInt(toDecimal(monkey.operation[0]))
-        const operand2 =
-          monkey.operation[1] === 'old' ? item : BigInt(toDecimal(monkey.operation[1]))
-        let level = monkey.operation[2] === '*' ? operand1 * operand2 : operand1 + operand2
+        const operand1 = monkey.operation[0] === 'old' ? item : toDecimal(monkey.operation[0])
+        const operand2 = monkey.operation[1] === 'old' ? item : toDecimal(monkey.operation[1])
+
+        let level =
+          (monkey.operation[2] === '*' ? operand1 * operand2 : operand1 + operand2) %
+          devisorsProduct
         monkeys[level % monkey.devisibleBy == 0 ? monkey.ifTrue : monkey.ifFalse].items.push(level)
       }
     })
@@ -57,5 +59,4 @@ lineReader.on('close', function () {
       .map(monkey => monkey.inspected)
       .reduce((acc, value, index) => (index < 2 ? acc * value : acc), 1)
   )
-  console.log(monkeys.map(monkey => monkey.inspected))
 })

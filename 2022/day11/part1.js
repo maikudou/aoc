@@ -51,6 +51,7 @@ lineReader.on('close', function () {
   }
   console.log(
     monkeys
+      .slice()
       .sort((a, b) => b.inspected - a.inspected)
       .map(monkey => monkey.inspected)
       .reduce((acc, value, index) => (index < 2 ? acc * value : acc), 1)

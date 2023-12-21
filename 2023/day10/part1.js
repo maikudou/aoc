@@ -10,108 +10,13 @@ const map = []
 let startX
 let startY
 let maxDist = 0
-let maxX = 0
-let maxY = 0
 
 const up = new Set(['|', 'F', '7'])
 const down = new Set(['|', 'L', 'J'])
 const right = new Set(['-', 'J', '7'])
 const left = new Set(['-', 'F', 'L'])
 
-function renderDists() {
-  console.log(
-    map
-      .map(row => row.map(cell => (cell.visited ? cell.distance % 10 : cell.pipe)).join(''))
-      .join('\n')
-  )
-}
-
-const multiplier = 32
-
-function renderCanvas() {
-  var canvas = createCanvas(maxX * multiplier, maxY * multiplier)
-  var ctx = canvas.getContext('2d')
-  ctx.fillStyle = 'black'
-  ctx.fillRect(0, 0, (maxX + 1) * multiplier, (maxY + 1) * multiplier)
-
-  for (var y = 0; y < maxY; y++) {
-    for (var x = 0; x < maxX; x++) {
-      const currentCell = map[y][x]
-      ctx.fillStyle = 'white'
-      ctx.strokeStyle = 'black'
-      ctx.font = `regular ${multiplier / 4}px monospace`
-
-      if (currentCell.visited) {
-        if (currentCell.pipe === 'S') {
-          ctx.fillStyle = 'green'
-        } else if (currentCell.distance === maxDist) {
-          ctx.fillStyle = 'red'
-        } else {
-          ctx.fillStyle = 'white'
-        }
-        ctx.fillRect(x * multiplier, y * multiplier, multiplier, multiplier)
-        ctx.lineWidth = multiplier / 16
-        ctx.strokeRect(x * multiplier, y * multiplier, multiplier, multiplier)
-        ctx.fillStyle = 'black'
-        ctx.fillText(
-          currentCell.distance,
-          x * multiplier + multiplier / 8,
-          y * multiplier + multiplier / 4,
-          multiplier
-        )
-
-        ctx.beginPath()
-        switch (currentCell.pipe) {
-          case 'J':
-            ctx.arc(x * multiplier, y * multiplier, multiplier / 2, 0, 0.5 * Math.PI)
-            break
-          case 'F':
-            ctx.arc(
-              (x + 1) * multiplier,
-              (y + 1) * multiplier,
-              multiplier / 2,
-              Math.PI,
-              1.5 * Math.PI
-            )
-            break
-          case '7':
-            ctx.arc(
-              x * multiplier,
-              (y + 1) * multiplier,
-              multiplier / 2,
-              1.5 * Math.PI,
-              2 * Math.PI
-            )
-            break
-          case 'L':
-            ctx.arc((x + 1) * multiplier, y * multiplier, multiplier / 2, 0.5 * Math.PI, Math.PI)
-            break
-          case '-':
-            ctx.moveTo(x * multiplier, y * multiplier + multiplier / 2)
-            ctx.lineTo((x + 1) * multiplier, y * multiplier + multiplier / 2)
-            break
-          case '|':
-            ctx.moveTo(x * multiplier + multiplier / 2, y * multiplier)
-            ctx.lineTo(x * multiplier + multiplier / 2, (y + 1) * multiplier)
-            break
-        }
-        ctx.strokeStyle = 'blue'
-        ctx.lineWidth = multiplier / 8
-        ctx.stroke()
-      } else {
-        ctx.fillStyle = 'gray'
-        ctx.fillRect(x * multiplier, y * multiplier, multiplier, multiplier)
-        ctx.lineWidth = multiplier / 16
-        ctx.strokeRect(x * multiplier, y * multiplier, multiplier, multiplier)
-      }
-    }
-  }
-
-  var out = join(__dirname, 'render', `map.png`)
-  writeFileSync(out, canvas.toBuffer())
-}
-
-function traverse(tracer) {
+function traverse(tracer, map) {
   let moved = false
   for (let x = -1; x <= 1; x++) {
     for (let y = -1; y <= 1; y++) {
@@ -221,14 +126,11 @@ lineReader.on('line', function (line) {
 })
 
 lineReader.on('close', function () {
-  maxY = map.length
-  maxX = map[0].length
   map[startY][startX].visited = true
   map[startY][startX].distance = 0
 
   let tracerA = { x: startX, y: startY }
   let tracerB = { x: startX, y: startY }
-  while (traverse(tracerA) && traverse(tracerB)) {}
+  while (traverse(tracerA, map) && traverse(tracerB, map)) {}
   console.log(maxDist)
-  renderCanvas()
 })

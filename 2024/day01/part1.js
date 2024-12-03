@@ -16,7 +16,9 @@ lineReader.on('line', function (line) {
 lineReader.on('close', function () {
   let sortedA = pairsA.map(toDecimal).sort(numSorter)
   let sortedB = pairsB.map(toDecimal).sort(numSorter)
-  console.log(sortedA.reduce((acc, value, index) => {
-    return acc + Math.abs(value - sortedB[index])
-  }, 0))
+  console.log(
+    sortedA.reduce((acc, value, index) => {
+      return acc + Math.abs(value - sortedB[index])
+    }, 0)
+  )
 })

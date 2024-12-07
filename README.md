@@ -6,7 +6,7 @@ Solution are mostly in JS
 
 ### Status
 
-- **2024** — [ ] in progress (12)
+- **2024** — [ ] in progress (14)
 - **2023** — [ ] in progress
 - **2022** — [ ] 40 stars
 - **2021** — [ ] 43 stars

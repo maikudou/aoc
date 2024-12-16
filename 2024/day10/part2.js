@@ -1,3 +1,4 @@
+const { north, south, west, east } = require('../../utils/mapNeigbors')
 const toDecimal = require('../../utils/toDecimal')
 
 var lineReader = require('readline').createInterface({
@@ -26,16 +27,16 @@ lineReader.on('close', function () {
         if (currentHeight === 9) {
           score++
         } else {
-          if (currentCheck >= width && map[currentCheck - width] === currentHeight + 1) {
+          if (north(map, width, currentCheck) === currentHeight + 1) {
             toCheck.push(currentCheck - width)
           }
-          if (map[currentCheck + width] === currentHeight + 1) {
+          if (south(map, width, currentCheck) === currentHeight + 1) {
             toCheck.push(currentCheck + width)
           }
-          if (currentCheck % width && map[currentCheck - 1] === currentHeight + 1) {
+          if (west(map, width, currentCheck) === currentHeight + 1) {
             toCheck.push(currentCheck - 1)
           }
-          if ((currentCheck + 1) % width && map[currentCheck + 1] === currentHeight + 1) {
+          if (east(map, width, currentCheck) === currentHeight + 1) {
             toCheck.push(currentCheck + 1)
           }
         }

@@ -1,3 +1,4 @@
+const { north, south, east, west } = require('../../utils/mapNeigbors')
 const toDecimal = require('../../utils/toDecimal')
 
 var lineReader = require('readline').createInterface({
@@ -33,28 +34,25 @@ lineReader.on('close', function () {
           score++
         } else {
           if (
-            currentCheck >= width &&
-            map[currentCheck - width] === currentHeight + 1 &&
+            north(map, width, currentCheck) === currentHeight + 1 &&
             !visited.has(currentCheck - width)
           ) {
             toCheck.push(currentCheck - width)
           }
           if (
-            map[currentCheck + width] === currentHeight + 1 &&
+            south(map, width, currentCheck) === currentHeight + 1 &&
             !visited.has(currentCheck + width)
           ) {
             toCheck.push(currentCheck + width)
           }
           if (
-            currentCheck % width &&
-            map[currentCheck - 1] === currentHeight + 1 &&
+            west(map, width, currentCheck) === currentHeight + 1 &&
             !visited.has(currentCheck - 1)
           ) {
             toCheck.push(currentCheck - 1)
           }
           if (
-            (currentCheck + 1) % width &&
-            map[currentCheck + 1] === currentHeight + 1 &&
+            east(map, width, currentCheck) === currentHeight + 1 &&
             !visited.has(currentCheck + 1)
           ) {
             toCheck.push(currentCheck + 1)

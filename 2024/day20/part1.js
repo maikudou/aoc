@@ -100,7 +100,7 @@ function dijkstra() {
   }
 }
 
-lineReader.on('close', function () {
+function countCheats(maxCheatsTicks = 2) {
   const [fairScore, map] = dijkstra(walls)
 
   let count = 0
@@ -139,6 +139,10 @@ lineReader.on('close', function () {
       }
     }
   }
+  return count
+}
 
-  console.log(count)
+lineReader.on('close', function () {
+  console.log(countCheats(2))
+  console.log(countCheats(20))
 })

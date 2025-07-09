@@ -1,4 +1,3 @@
-const { start } = require('repl')
 const { Heap } = require('../../utils/Heap')
 const toDecimal = require('../../utils/toDecimal')
 
@@ -9,7 +8,7 @@ class MinHeap extends Heap {
 }
 
 var lineReader = require('readline').createInterface({
-  input: require('fs').createReadStream(__dirname + '/test2')
+  input: require('fs').createReadStream(__dirname + '/input')
 })
 
 let startPosition = null
@@ -17,9 +16,13 @@ let endPosition = null
 const walls = new Set()
 
 let lineCount = 0
+let width = 0
 
 lineReader.on('line', function (line) {
   line.split('').forEach((cell, index) => {
+    if (!width) {
+      width = line.length
+    }
     const pos = `${index}|${lineCount}`
     if (cell === '#') {
       walls.add(pos)
@@ -31,6 +34,7 @@ lineReader.on('line', function (line) {
   })
   lineCount++
 })
+const backwards = { '>': '<', '<': '>', v: '^', '^': 'v' }
 
 function dijkstra() {
   const map = new Map()
@@ -45,62 +49,63 @@ function dijkstra() {
     facing: '>'
   }
   const visited = new Set()
+  map.set(`${current.x}|${current.y}|${current.facing}`, current.distTo)
 
   let heap = new MinHeap()
   let iterations = 0
   while (current) {
-    if (visited.has(`${current.x}|${current.y}|${current.facing}`)) {
+    const { x, y, distTo, facing } = current
+    if (visited.has(`${x}|${y}|${facing}`)) {
       current = heap.pop()
       continue
     }
 
-    const candidates = []
+    const neighbors = [
+      {
+        x: x + 1,
+        y: y,
+        id: `${x + 1}|${y}|>`,
+        facing: '>'
+      },
+      {
+        x: x - 1,
+        y: y,
+        id: `${x - 1}|${y}|<`,
+        facing: '<'
+      },
+      {
+        x: x,
+        y: y + 1,
+        id: `${x}|${y + 1}|v`,
+        facing: 'v'
+      },
+      {
+        x: x,
+        y: y - 1,
+        id: `${x}|${y - 1}|^`,
+        facing: '^'
+      }
+    ]
+      .filter(
+        neighbor =>
+          backwards[facing] !== neighbor.facing && !walls.has(`${neighbor.x}|${neighbor.y}`)
+      )
+      .map(neighbor => ({
+        ...neighbor,
+        distTo: distTo + (neighbor.facing === facing ? 1 : 1001)
+      }))
 
-    const rotating = {
-      x: current.x,
-      y: current.y,
-      cost: 1000
-    }
-
-    if (current.facing === '>') {
-      if (!walls.has(`${current.x + 1}|${current.y}`)) {
-        candidates.push({ x: current.x + 1, y: current.y, cost: 1, facing: current.facing })
+    neighbors.forEach(neighbor => {
+      const id = `${neighbor.x}|${neighbor.y}|${neighbor.facing}`
+      if (!map.has(id)) {
+        map.set(id, neighbor.distTo)
       }
-      candidates.push({ ...rotating, facing: '^' })
-      candidates.push({ ...rotating, facing: 'v' })
-    } else if (current.facing === '^') {
-      if (!walls.has(`${current.x}|${current.y - 1}`)) {
-        candidates.push({ x: current.x, y: current.y - 1, cost: 1, facing: current.facing })
-      }
-      candidates.push({ ...rotating, facing: '<' })
-      candidates.push({ ...rotating, facing: '>' })
-    } else if (current.facing === '<') {
-      if (!walls.has(`${current.x - 1}|${current.y}`)) {
-        candidates.push({ x: current.x - 1, y: current.y, cost: 1, facing: current.facing })
-      }
-      candidates.push({ ...rotating, facing: '^' })
-      candidates.push({ ...rotating, facing: 'v' })
-    } else if (current.facing === 'v') {
-      if (!walls.has(`${current.x}|${current.y + 1}`)) {
-        candidates.push({ x: current.x, y: current.y + 1, cost: 1, facing: current.facing })
-      }
-      candidates.push({ ...rotating, facing: '<' })
-      candidates.push({ ...rotating, facing: '>' })
-    }
-
-    candidates.forEach(candidate => {
-      const id = `${candidate.x}|${candidate.y}|${candidate.facing}`
-      if (!visited.has(id)) {
-        if (!map.has(id)) {
-          map.set(id, current.distTo + candidate.cost)
-        }
-        heap.insert({
-          distTo: Math.min(map.get(id), current.distTo + candidate.cost),
-          x: candidate.x,
-          y: candidate.y,
-          facing: candidate.facing
-        })
-      }
+      heap.insert({
+        distTo: Math.min(map.get(id), neighbor.distTo),
+        x: neighbor.x,
+        y: neighbor.y,
+        facing: neighbor.facing
+      })
     })
 
     visited.add(`${current.x}|${current.y}|${current.facing}`)
@@ -110,45 +115,61 @@ function dijkstra() {
     }
     current = heap.pop()
   }
+  return map
 }
 
 lineReader.on('close', function () {
   const map = dijkstra()
   const [startX, startY] = startPosition.split('|').map(toDecimal)
   const [endX, endY] = endPosition.split('|').map(toDecimal)
-  let tile = ['^', '>', 'v', '<']
+
+  const tiles = ['^', '>', 'v', '<']
     .map(facing => {
       return {
+        x: endX,
+        y: endY,
         id: `${endX}|${endY}|${facing}`,
-        dist: map.get(`${endX}|${endY}|${facing}`) || Infinity
+        distTo: map.get(`${endX}|${endY}|${facing}`) || Infinity,
+        facing
       }
     })
-    .sort((a, b) => a.dist - b.dist)[0]
+    .sort((a, b) => a.dist - b.dist)
 
-  const tiles2Check = [tile]
+  const shortestDistance = tiles[0].dist
+  // console.log(shortestDistance)
+
+  const tiles2Check = tiles.filter(({ dist }) => dist === shortestDistance)
 
   const goodCells = new Set()
 
   while (tiles2Check.length) {
     const tile = tiles2Check.shift()
-    let [x, y] = tile.id.split('|').map(toDecimal)
+    const { x, y, distTo, facing } = tile
+
     goodCells.add(`${x}|${y}`)
-    const [_, __, facing] = tile.id.split('|')
-    if (x === startX && y === startY) {
-      break
-    }
-    const allAroundTiles = [
-      { id: `${x - 1}|${y}|>`, dist: map.get(`${x - 1}|${y}|>`) || Infinity, facing: '>' },
-      { id: `${x + 1}|${y}|<`, dist: map.get(`${x + 1}|${y}|<`) || Infinity, facing: '<' },
-      { id: `${x}|${y - 1}|v`, dist: map.get(`${x}|${y - 1}|v`) || Infinity, facing: 'v' },
-      { id: `${x}|${y + 1}|^`, dist: map.get(`${x}|${y + 1}|^`) || Infinity, facing: '^' }
-    ]
 
-    const t = allAroundTiles.filter(t => {
-      return t.facing == facing ? t.dist === tile.dist - 1 : t.dist === tile.dist - 1001
-    })
+    const art = ['^', '>', 'v', '<']
+      .map(tile =>
+        [
+          [-1, 0],
+          [1, 0],
+          [0, -1],
+          [0, 1]
+        ].map(([xd, yd]) => ({
+          x: x + xd,
+          y: y + yd,
+          id: `${x + xd}|${y + yd}|${tile}`,
+          facing: tile
+        }))
+      )
+      .flat()
+      .filter(({ id }) => map.has(id))
+      .map(tile => ({ ...tile, distTo: map.get(tile.id) }))
+      .filter(tile =>
+        tile.facing == facing ? tile.distTo === distTo - 1 : tile.distTo === distTo - 1001
+      )
 
-    t.forEach(t1 => tiles2Check.push(t1))
+    art.forEach(t => tiles2Check.push(t))
   }
 
   console.log(goodCells.size)

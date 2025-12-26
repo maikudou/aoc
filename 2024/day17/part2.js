@@ -43,19 +43,73 @@ lineReader.on('line', function (line) {
 })
 
 lineReader.on('close', function () {
-  for (let i = 5048983231; i < 100000000000000000; i++) {
-    if (i % 500000000 === 0) {
-      console.log(i)
+  const mins = []
+
+  const findNextMin = (min, result, power) => {
+    let i = 0
+    while (true) {
+      const acc = Math.floor((i * Math.pow(8, power)) / Math.pow(8, power))
+      const newMin = i * Math.pow(8, power)
+      if ((acc % 8 ^ 3 ^ (acc / Math.pow(2, acc % 8 ^ 3)) ^ 5) % 8 === result && newMin > min) {
+        return newMin
+      }
+      i++
     }
-    if (
-      program.slice(0, 11).some((num, index) => {
-        const j = i / Math.pow(8, index)
-        return (j % 8 ^ 3 ^ (j / Math.pow(2, j % 8 ^ 3)) ^ 5) % 8 !== num
-      })
-    ) {
+  }
+
+  program
+    .slice()
+    .reverse()
+    .forEach((v, index) => {
+      mins.push(findNextMin(0, parseInt(v, 10), program.length - index - 1))
+    })
+
+  // mins.forEach(m => {
+  //   console.log(m)
+  //   console.log(m / 8)
+  //   console.log('---')
+  // })
+
+  // mins
+  //   .slice()
+  //   .reverse()
+  //   .forEach((v, index) => {
+  //     const acc = Math.floor(v / Math.pow(8, index))
+  //     console.log((acc % 8 ^ 3 ^ (acc / Math.pow(2, acc % 8 ^ 3)) ^ 5) % 8)
+  //   })
+
+  let index = 0
+
+  while (index < mins.length - 1) {
+    const min8 = mins[0] / Math.pow(8, index + 1)
+    if (min8 < mins[index + 1]) {
+      index = 0
+      mins[0] = findNextMin(
+        mins[0],
+        parseInt(program[program.length - index - 1], 10),
+        program.length - index - 1
+      )
       continue
     }
+    index++
+  }
 
-    console.log(i)
+  console.log(mins, mins[0])
+  // regA = mins[0]
+  let i = mins[0]
+  while (true) {
+    if (
+      program
+        .slice()
+        .reverse()
+        .every((value, index) => {
+          const acc = Math.floor(i / Math.pow(8, program.length - index - 1))
+          return parseInt(value, 10) === (acc % 8 ^ 3 ^ (acc / Math.pow(2, acc % 8 ^ 3)) ^ 5) % 8
+        })
+    ) {
+      console.log(i)
+      process.exit(0)
+    }
+    i++
   }
 })

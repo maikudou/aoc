@@ -39,37 +39,25 @@ function isPossible(design) {
 lineReader.on('line', function (line) {
   if (line) {
     if (patterns.size) {
-      const possible = new Set()
-      for (let i = 0; i < line.length; i++) {
-        if (isPossible(line.substring(i))) {
-          possible.add(i)
-        }
-      }
-      const tried = new Set()
-      if (!possible.has(0)) {
-        return
-      }
-      let paths = [{ index: 0, hash: '' }]
-      let localCount = 0
-      while (paths.length) {
-        path = paths.shift()
-        tried.add(path.hash)
-
-        let i = 0
-        while (path.index + i <= line.length) {
-          i++
-          const variant = line.substring(path.index, path.index + i)
-          if (patterns.has(variant)) {
-            if (path.index + i === line.length) {
-              localCount++
-            } else if (!tried.has(`${path.hash},${variant}`) && possible.has(path.index + i)) {
-              paths.push({ index: path.index + i, hash: `${path.hash},${variant}` })
-            }
+      console.log('Line:', line)
+      let currentStart = 0
+      let currentLength = 1
+      if (isPossible(line)) {
+        while (currentStart + currentLength <= line.length) {
+          const design = line.substring(currentStart, currentStart + currentLength)
+          if (isPossible(design)) {
+            console.log(design)
+            currentLength++
+          } else {
+            currentStart += currentLength
           }
+          currentLength++
         }
-        paths.sort((a, b) => b.index - a.index)
+        console.log('+\n')
+      } else {
+        console.log('-\n')
       }
-      count += localCount
+      process.exit()
     } else {
       line.split(', ').forEach(pattern => patterns.add(pattern))
     }
